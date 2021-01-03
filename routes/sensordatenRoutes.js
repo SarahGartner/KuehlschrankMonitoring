@@ -17,9 +17,9 @@ router.get('/', async (req, res) => {
 
 
 //Alle Sensordaten eines Geräts
-router.post('/ByGId', async (req, res) => {
+router.post('/ByMac', async (req, res) => {
     try {
-        const sensordaten = await Sensordaten.find({'_id.gId': req.body.GId});
+        const sensordaten = await Sensordaten.find({'_id.sensorMac': req.body.sensorMac});
         res.json(sensordaten);
     } catch(error) {
         res.json({message: error});
@@ -31,8 +31,8 @@ router.post('/ByTimestamps', async (req, res) => {
     try {
         const sensordaten = await Sensordaten.find(
             {
-                '_id.gId': req.body.GId,
-                '_id.zeitstempel' : 
+                '_id.sensorMac': req.body.sensorMac,
+                '_id.timestamp' : 
                     {$gte: req.body.gte, 
                     $lt: req.body.lt
                 }
@@ -49,8 +49,8 @@ router.post('/oneWeek', async (req, res) => {
     try {
         const sensordaten = await Sensordaten.find(
             {
-                '_id.gId': req.body.GId,
-                '_id.zeitstempel' : 
+                '_id.sensorMac': req.body.sensorMac,
+                '_id.timestamp' : 
                     {$gte: Date.now() - 604800000, 
                     $lt: Date.now()
                 }
@@ -70,8 +70,8 @@ router.post('/ByMilliseconds', async (req, res) => {
     try {
         const sensordaten = await Sensordaten.find(
             {
-                '_id.gId': req.body.GId,
-                '_id.zeitstempel' : 
+                '_id.sensorMac': req.body.sensorMac,
+                '_id.timestamp' : 
                     {$gte: Date.now() - req.body.ms, 
                     $lt: Date.now()
                 }
@@ -88,15 +88,15 @@ router.post('/ByMilliseconds', async (req, res) => {
 //mehrere Sensordaten speichern
 router.post('/Save', async (req, res) => {
     const sensordaten = [];
-    req.body.Daten.forEach(e => 
+    req.body.forEach(e => 
         sensordaten.push(
             new Sensordaten({
             _id: {
-                gId: e.GId,
-                zeitstempel: e.Zeitstempel
+                sensorMac: e.sensorMac,
+                timestamp: e.timestamp
             },
-            temperatur: e.Temperatur,
-            luftfeuchtigkeit: e.Luftfeuchtigkeit,
+            temperature: e.temperature,
+            humidity: e.humidity,
         })));
     try {
         const savedSensordaten = [];
@@ -105,10 +105,8 @@ router.post('/Save', async (req, res) => {
         sensordaten.forEach(e => 
             savedSensordaten.push(e));
         res.json(savedSensordaten);
-        console.log(savedSensordaten);
     } catch(error) {
         res.json({message: error});
-        console.log(error);
     }
 });
 

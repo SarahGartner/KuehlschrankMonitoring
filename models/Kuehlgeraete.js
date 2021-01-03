@@ -2,41 +2,43 @@ const mongoose = require('mongoose');
 
 
 const KuehlgeraeteSchema = mongoose.Schema({
-    //mac-adresse?
     _id: {
         type: String
     },
+    kgId: {
+        type: String,
+        required: false
+    },
     name: {
         type: String,
-        required: true
+        required: false
     },
     userId: {
         type: Number,
-        required: true
+        required: false
     },
-    sendeInterval: {
+    crossGateId: {
         type: Number,
-        required: true,
-        default: 300000
+        required: false
     },
-    minTemperatur: {
+    minTemperature: {
         type: mongoose.Schema.Types.Decimal128,
         required: false
     },
-    maxTemperatur: {
+    maxTemperature: {
         type: mongoose.Schema.Types.Decimal128,
         required: false
     },
-    minLuftfeuchtigkeit: {
+    minHumidity: {
         type: mongoose.Schema.Types.Decimal128,
         required: false
     },
-    maxLuftfeuchtigkeit: {
+    maxHumidity: {
         type: mongoose.Schema.Types.Decimal128,
         required: false
     }
 },{
-    collection: 'Kuehlgeraete'
+    collection: 'fridges'
 }
 );
 
