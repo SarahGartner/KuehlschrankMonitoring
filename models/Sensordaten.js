@@ -3,30 +3,26 @@ const mongoose = require('mongoose');
 
 const SensordatenSchema = mongoose.Schema({
     _id: {
-        gId: {
-            type: Number,
+        sensorMac: {
+            type: String,
             required: true
         },
-        zeitstempel: {
+        timestamp: {
             type: Date,
             required: true,
             default: Date.now
         }
     },
-    temperatur: {
+    temperature: {
         type: mongoose.Schema.Types.Decimal128,
         required: false
     },
-    luftfeuchtigkeit: {
+    humidity: {
         type: mongoose.Schema.Types.Decimal128,
-        required: false
-    },
-    fehlermeldungId: {
-        type: Number,
         required: false
     }
 },{
-    collection: 'Sensordaten'
+    collection: 'Sensordata'
 }
 );
 

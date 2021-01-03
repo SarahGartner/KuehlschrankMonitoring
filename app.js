@@ -12,8 +12,8 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
 //Routen
-app.use('/sensordaten', sensordatenRoutes);
-app.use('/kuehlgeraete', kuehlgeraeteRoutes);
+app.use('/sensordata', sensordatenRoutes);
+app.use('/fridges', kuehlgeraeteRoutes);
 
 //Mit Datenbank verbinden
 mongoose.connect(process.env.DB,

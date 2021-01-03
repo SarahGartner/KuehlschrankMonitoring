@@ -10,15 +10,19 @@ const UserSchema = mongoose.Schema({
         required: true,
         unique: true
     },
-    vorname: {
+    password: {
+        type: String,
+        required: true,
+    },
+    firstName: {
         type: String,
         required: true
     },
-    nachname: {
+    lastName: {
         type: String,
         required: true
     },
-    telefonnummer: {
+    phonenumber: {
         type: String,
         required: true
     },
@@ -26,7 +30,11 @@ const UserSchema = mongoose.Schema({
         type: String,
         required: true
     },
-    firma: {
+    company: {
+        type: String,
+        required: false
+    },
+    companyId: {
         type: String,
         required: false
     }
