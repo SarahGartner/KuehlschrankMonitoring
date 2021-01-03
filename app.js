@@ -1,6 +1,7 @@
 const express = require('express');
 const app = express();
 const mongoose = require('mongoose');
+const port = process.env.PORT || 3000;
 require('dotenv/config');
 
 const webappRoutes = require('./routes/webapp');
@@ -22,4 +23,4 @@ mongoose.connect('mongodb://kuehlschrankmonitoring:1kFDVoKr8zHrVubhpjAe3jeYNMowx
 );
 
 
-app.listen(3000);
+app.listen(port);
