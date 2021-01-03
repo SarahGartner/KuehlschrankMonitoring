@@ -85,10 +85,31 @@ router.post('/sensordatenProIdMillisekunden', async (req, res) => {
     }
 });
 
+
 //Alle Kuehlgeraete aus der DB
 router.get('/alleKuehlgeraete', async (req, res) => {
     try {
         const kuehlgeraete = await Kuehlgeraet.find();
+        res.json(kuehlgeraete);
+    } catch(error) {
+        res.json({message: error});
+    }
+});
+
+//1 Kuehlgeraet mit bestimmter Mac-Adresse aus der DB
+router.post('/KuehlgeraetProId', async (req, res) => {
+    try {
+        const kuehlgeraete = await Kuehlgeraet.find({_id: req.body.macAdresse});
+        res.json(kuehlgeraete);
+    } catch(error) {
+        res.json({message: error});
+    }
+});
+
+//alle Kuehlgeraet eines Users aus der DB
+router.post('/KuehlgeraeteProUser', async (req, res) => {
+    try {
+        const kuehlgeraete = await Kuehlgeraet.find({userId: req.body.userId});
         res.json(kuehlgeraete);
     } catch(error) {
         res.json({message: error});
