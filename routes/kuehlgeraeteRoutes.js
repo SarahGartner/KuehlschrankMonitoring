@@ -41,7 +41,7 @@ router.post('/ByUser', async (req, res) => {
 router.post('/Save', async (req, res) => {
     const kuehlgeraet = new Kuehlgeraet({
         _id: req.body.sensorMac,
-        kgId: req.body.kgId,
+        fridgeId: req.body.fridgeId,
         name: req.body.name,
         userId: req.body.userId,
         crossGateId: req.body.crossGateId,
