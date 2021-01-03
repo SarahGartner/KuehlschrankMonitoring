@@ -4,15 +4,16 @@ const mongoose = require('mongoose');
 const port = process.env.PORT || 3000;
 require('dotenv/config');
 
-const webappRoutes = require('./routes/webapp');
-const microRoutes = require('./routes/microcontroller');
+const sensordatenRoutes = require('./routes/sensordatenRoutes');
+const kuehlgeraeteRoutes = require('./routes/kuehlgeraeteRoutes');
 
 //JSON aus Body auslesen
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
-app.use('/webapp', webappRoutes);
-app.use('/micro', microRoutes);
+//Routen
+app.use('/sensordaten', sensordatenRoutes);
+app.use('/kuehlgeraete', kuehlgeraeteRoutes);
 
 //Mit Datenbank verbinden
 mongoose.connect(process.env.DB,

@@ -4,12 +4,9 @@ const Kuehlgeraet = require('../models/Kuehlgeraete');
 const router = express.Router();
 
 
-router.get('/', (req, res) => {
-    res.send('Routen für die Webapp :)');
-});
-
+//READ
 //Alle Sensordaten aus der DB
-router.get('/alleSensordaten', async (req, res) => {
+router.get('/', async (req, res) => {
     try {
         const sensordaten = await Sensordaten.find();
         res.json(sensordaten);
@@ -18,8 +15,9 @@ router.get('/alleSensordaten', async (req, res) => {
     }
 });
 
+
 //Alle Sensordaten eines Geräts
-router.post('/sensordatenProId', async (req, res) => {
+router.post('/ByGId', async (req, res) => {
     try {
         const sensordaten = await Sensordaten.find({'_id.gId': req.body.GId});
         res.json(sensordaten);
@@ -29,7 +27,7 @@ router.post('/sensordatenProId', async (req, res) => {
 });
 
 //Alle Sensordaten eines Geräts zwischen 2 Zeitstempel
-router.post('/sensordatenProIdZwischenZeitstempel', async (req, res) => {
+router.post('/ByTimestamps', async (req, res) => {
     try {
         const sensordaten = await Sensordaten.find(
             {
@@ -47,7 +45,7 @@ router.post('/sensordatenProIdZwischenZeitstempel', async (req, res) => {
 });
 
 //Alle Sensordaten eines Geräts der letzten 7 Tage
-router.post('/sensordatenProId1Woche', async (req, res) => {
+router.post('/oneWeek', async (req, res) => {
     try {
         const sensordaten = await Sensordaten.find(
             {
@@ -68,7 +66,7 @@ router.post('/sensordatenProId1Woche', async (req, res) => {
 // 1 Stunde: 3600000
 // 1 Tag: 86400000
 // 1 Woche: 604800000
-router.post('/sensordatenProIdMillisekunden', async (req, res) => {
+router.post('/ByMilliseconds', async (req, res) => {
     try {
         const sensordaten = await Sensordaten.find(
             {
@@ -86,34 +84,33 @@ router.post('/sensordatenProIdMillisekunden', async (req, res) => {
 });
 
 
-//Alle Kuehlgeraete aus der DB
-router.get('/alleKuehlgeraete', async (req, res) => {
+//CREATE
+//mehrere Sensordaten speichern
+router.post('/Save', async (req, res) => {
+    const sensordaten = [];
+    req.body.Daten.forEach(e => 
+        sensordaten.push(
+            new Sensordaten({
+            _id: {
+                gId: e.GId,
+                zeitstempel: e.Zeitstempel
+            },
+            temperatur: e.Temperatur,
+            luftfeuchtigkeit: e.Luftfeuchtigkeit,
+        })));
     try {
-        const kuehlgeraete = await Kuehlgeraet.find();
-        res.json(kuehlgeraete);
+        const savedSensordaten = [];
+        await sensordaten.forEach(e => 
+            e.save());
+        sensordaten.forEach(e => 
+            savedSensordaten.push(e));
+        res.json(savedSensordaten);
+        console.log(savedSensordaten);
     } catch(error) {
         res.json({message: error});
+        console.log(error);
     }
 });
 
-//1 Kuehlgeraet mit bestimmter Mac-Adresse aus der DB
-router.post('/KuehlgeraetProId', async (req, res) => {
-    try {
-        const kuehlgeraete = await Kuehlgeraet.find({_id: req.body.macAdresse});
-        res.json(kuehlgeraete);
-    } catch(error) {
-        res.json({message: error});
-    }
-});
-
-//alle Kuehlgeraet eines Users aus der DB
-router.post('/KuehlgeraeteProUser', async (req, res) => {
-    try {
-        const kuehlgeraete = await Kuehlgeraet.find({userId: req.body.userId});
-        res.json(kuehlgeraete);
-    } catch(error) {
-        res.json({message: error});
-    }
-});
 
 module.exports = router;
