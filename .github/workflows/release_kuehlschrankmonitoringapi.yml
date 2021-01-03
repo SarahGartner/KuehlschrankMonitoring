@@ -31,5 +31,5 @@ jobs:
       with:
         app-name: 'kuehlschrankmonitoringapi'
         slot-name: 'production'
-        publish-profile: ${{ secrets.AzureAppService_PublishProfile_622d07fee27c4b55a024cfbcecd6f739 }}
+        publish-profile: ${{ secrets.AzureAppService_PublishProfile_7d71ab327cf3412a91048663b1efcbb0 }}
         package: .
