@@ -15,16 +15,17 @@ const KuehlgeraeteSchema = mongoose.Schema({
         required: true
     },
     sendeInterval: {
-        type: mongoose.Schema.Types.Decimal128,
-        required: true
+        type: Number,
+        required: true,
+        default: 300000
     },
     minTemperatur: {
         type: mongoose.Schema.Types.Decimal128,
-        required: true
+        required: false
     },
     maxTemperatur: {
         type: mongoose.Schema.Types.Decimal128,
-        required: true
+        required: false
     },
     minLuftfeuchtigkeit: {
         type: mongoose.Schema.Types.Decimal128,
