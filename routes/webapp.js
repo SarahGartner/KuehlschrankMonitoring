@@ -1,5 +1,6 @@
 const express = require('express');
 const Sensordaten = require('../models/Sensordaten');
+const Kuehlgeraet = require('../models/Kuehlgeraete');
 const router = express.Router();
 
 
@@ -79,6 +80,16 @@ router.post('/sensordatenProIdMillisekunden', async (req, res) => {
             }
         );
         res.json(sensordaten);
+    } catch(error) {
+        res.json({message: error});
+    }
+});
+
+//Alle Kuehlgeraete aus der DB
+router.get('/alleKuehlgeraete', async (req, res) => {
+    try {
+        const kuehlgeraete = await Kuehlgeraet.find();
+        res.json(kuehlgeraete);
     } catch(error) {
         res.json({message: error});
     }

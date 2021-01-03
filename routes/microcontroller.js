@@ -1,6 +1,6 @@
 const express = require('express');
 const Sensordaten = require('../models/Sensordaten');
-const kuehlgeraete = require('../models/Kuehlgeraete');
+const Kuehlgeraet = require('../models/Kuehlgeraete');
 const router = express.Router();
 
 
@@ -57,13 +57,22 @@ router.post('/sensordaten', async (req, res) => {
 
 //Kuehlgeraete speichern
 router.post('/kuehlgeraet', async (req, res) => {
-    const kuehlgeraet = new Sensordaten({
+    const kuehlgeraet = new Kuehlgeraet({
+        _id: req.body.macAdresse,
+        name: req.body.name,
+        userId: req.body.userId,
+        sendeInterval: req.body.sendeInterval,
+        minTemperatur: req.body.minTemp,
+        maxTemperatur: req.body.maxTemp,
+        minLuftfeuchtigkeit: req.body.minLF,
+        maxLuftfeuchtigkeit: req.body.maxLF,
     });
-    console.log(sensordaten);
+    console.log(kuehlgeraet);
     try {
-        const savedSensordaten = await sensordaten.save();
-        res.json(savedSensordaten);
+        const savedKuehlgeraet = await kuehlgeraet.save();
+        res.json(savedKuehlgeraet);
     } catch(error) {
+        console.log(error);
         res.json({message: error});
     }
 });
