@@ -10,8 +10,8 @@ router.get('/', async (req, res) => {
     try {
         const sensordaten = await Sensordaten.find();
         res.json(sensordaten);
-    } catch(error) {
-        res.json({message: error});
+    } catch (error) {
+        res.json({ message: error });
     }
 });
 
@@ -19,10 +19,10 @@ router.get('/', async (req, res) => {
 //Alle Sensordaten eines Geräts
 router.post('/ByMac', async (req, res) => {
     try {
-        const sensordaten = await Sensordaten.find({'_id.sensorMac': req.body.sensorMac});
+        const sensordaten = await Sensordaten.find({ '_id.sensorMac': req.body.sensorMac });
         res.json(sensordaten);
-    } catch(error) {
-        res.json({message: error});
+    } catch (error) {
+        res.json({ message: error });
     }
 });
 
@@ -32,15 +32,16 @@ router.post('/ByTimestamps', async (req, res) => {
         const sensordaten = await Sensordaten.find(
             {
                 '_id.sensorMac': req.body.sensorMac,
-                '_id.timestamp' : 
-                    {$gte: req.body.gte, 
+                '_id.timestamp':
+                {
+                    $gte: req.body.gte,
                     $lt: req.body.lt
                 }
             }
         );
         res.json(sensordaten);
-    } catch(error) {
-        res.json({message: error});
+    } catch (error) {
+        res.json({ message: error });
     }
 });
 
@@ -50,15 +51,16 @@ router.post('/oneWeek', async (req, res) => {
         const sensordaten = await Sensordaten.find(
             {
                 '_id.sensorMac': req.body.sensorMac,
-                '_id.timestamp' : 
-                    {$gte: Date.now() - 604800000, 
+                '_id.timestamp':
+                {
+                    $gte: Date.now() - 604800000,
                     $lt: Date.now()
                 }
             }
         );
         res.json(sensordaten);
-    } catch(error) {
-        res.json({message: error});
+    } catch (error) {
+        res.json({ message: error });
     }
 });
 
@@ -71,15 +73,16 @@ router.post('/ByMilliseconds', async (req, res) => {
         const sensordaten = await Sensordaten.find(
             {
                 '_id.sensorMac': req.body.sensorMac,
-                '_id.timestamp' : 
-                    {$gte: Date.now() - req.body.ms, 
+                '_id.timestamp':
+                {
+                    $gte: Date.now() - req.body.ms,
                     $lt: Date.now()
                 }
             }
         );
         res.json(sensordaten);
-    } catch(error) {
-        res.json({message: error});
+    } catch (error) {
+        res.json({ message: error });
     }
 });
 
@@ -88,26 +91,73 @@ router.post('/ByMilliseconds', async (req, res) => {
 //mehrere Sensordaten speichern
 router.post('/Save', async (req, res) => {
     const sensordaten = [];
-    req.body.forEach(e => 
+    const fridges = [];
+    req.body.forEach(e =>
         sensordaten.push(
             new Sensordaten({
-            _id: {
-                sensorMac: e.sensorMac,
-                timestamp: e.timestamp
-            },
-            temperature: e.temperature,
-            humidity: e.humidity,
-        })));
+                _id: {
+                    sensorMac: e.sensorMac,
+                    timestamp: e.timestamp
+                },
+                temperature: e.temperature,
+                humidity: e.humidity,
+                userId: e.userId,
+                crossGateId: e.crossGateId
+            })
+        )
+    )
     try {
         const savedSensordaten = [];
-        await sensordaten.forEach(e => 
+        await sensordaten.forEach(e =>
             e.save());
-        sensordaten.forEach(e => 
+        sensordaten.forEach(e =>
             savedSensordaten.push(e));
         res.json(savedSensordaten);
-    } catch(error) {
-        res.json({message: error});
+    } catch (error) {
+        res.json({ message: error });
+    };
+    req.body.forEach(async e => {
+        try {
+            const kuehlgeraet = await Kuehlgeraet.find({ _id: e.sensorMac });
+            if (kuehlgeraet.length == 0) {
+                console.log("leer");
+                const k = new Kuehlgeraet({
+                    _id: e.sensorMac,
+                    fridgeId: "",
+                    name: "",
+                    userId: e.userId,
+                    crossGateId: e.crossGateId
+                })
+                await k.save();
+            }
+        } catch (error) {
+            console.log(error);
+        }
     }
+    )
+
+    // res.json(fridge);
+    // res.json(fridges);
+    // console.log(fridges);
+    // if (typeof fridge.json === 'undefined') {
+    //     fridges.push(
+    //         new Kuehlgeraet({
+    //             _id: req.body.sensorMac,
+    //             fridgeId: "",
+    //             name: "",
+    //             userId: req.body.userId,
+    //             crossGateId: req.body.crossGateId
+    //         })
+    //     )
+
+    // try {
+    //     fridges.forEach(k =>
+    //         k.save());
+    //     console.log(fridges);
+    // } catch (error) {
+    //     console.log(error);
+    // }
+    // }
 });
 
 
