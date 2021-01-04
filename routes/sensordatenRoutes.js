@@ -120,44 +120,19 @@ router.post('/Save', async (req, res) => {
         try {
             const kuehlgeraet = await Kuehlgeraet.find({ _id: e.sensorMac });
             if (kuehlgeraet.length == 0) {
-                console.log("leer");
-                const k = new Kuehlgeraet({
+                await new Kuehlgeraet({
                     _id: e.sensorMac,
                     fridgeId: "",
                     name: "",
                     userId: e.userId,
                     crossGateId: e.crossGateId
-                })
-                await k.save();
+                }).save();
             }
         } catch (error) {
             console.log(error);
         }
     }
     )
-
-    // res.json(fridge);
-    // res.json(fridges);
-    // console.log(fridges);
-    // if (typeof fridge.json === 'undefined') {
-    //     fridges.push(
-    //         new Kuehlgeraet({
-    //             _id: req.body.sensorMac,
-    //             fridgeId: "",
-    //             name: "",
-    //             userId: req.body.userId,
-    //             crossGateId: req.body.crossGateId
-    //         })
-    //     )
-
-    // try {
-    //     fridges.forEach(k =>
-    //         k.save());
-    //     console.log(fridges);
-    // } catch (error) {
-    //     console.log(error);
-    // }
-    // }
 });
 
 
