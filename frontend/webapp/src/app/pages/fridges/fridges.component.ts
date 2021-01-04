@@ -9,13 +9,13 @@ import { HttpClient } from '@angular/common/http';
 export class FridgesComponent implements OnInit {
 
   // title = 'webapp';
-  url = `http://localhost:3000/fridges`;
+  url = `https://kuehlschrankmonitoringapi.azurewebsites.net/`;
   items = [];
   fridges = [];
   configured = [];
   userId = { userId: 3 };
   constructor(private http: HttpClient) {
-    this.http.post(this.url + '/ByUser', this.userId).toPromise().then(data => {
+    this.http.post(this.url + 'fridges/ByUser', this.userId).toPromise().then(data => {
       console.log(data);
       for (let key in data)
         if (data.hasOwnProperty(key))
