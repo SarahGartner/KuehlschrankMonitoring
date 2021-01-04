@@ -20,7 +20,13 @@ const SensordatenSchema = mongoose.Schema({
     humidity: {
         type: mongoose.Schema.Types.Decimal128,
         required: false
-    }
+    },
+    userId: {
+        type: String
+    },
+    crossGateId: {
+        type: String
+    },
 },{
     collection: 'Sensordata'
 }

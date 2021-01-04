@@ -14,11 +14,11 @@ const KuehlgeraeteSchema = mongoose.Schema({
         required: false
     },
     userId: {
-        type: Number,
+        type: String,
         required: false
     },
     crossGateId: {
-        type: Number,
+        type: String,
         required: false
     },
     minTemperature: {
