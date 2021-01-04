@@ -5,7 +5,7 @@ const KuehlgeraeteSchema = mongoose.Schema({
     _id: {
         type: String
     },
-    kgId: {
+    fridgeId: {
         type: String,
         required: false
     },
