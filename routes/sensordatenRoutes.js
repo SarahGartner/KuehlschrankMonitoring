@@ -91,7 +91,6 @@ router.post('/ByMilliseconds', async (req, res) => {
 //mehrere Sensordaten speichern
 router.post('/Save', async (req, res) => {
     const sensordaten = [];
-    const fridges = [];
     req.body.forEach(e =>
         sensordaten.push(
             new Sensordaten({

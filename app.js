@@ -52,62 +52,43 @@ user.forEach(u => {
 //saveSensordata
 client.on('message', function (topic, message) {
     const userId = topic.split('/')[0];
-    const crossgateId = topic.split('/')[1];
-    const sensorMac = '555';
-    const temperature = 4.4;
-    const humidity = 40.6;
-    const sensordata = [{
-        "sensorMac": "MQTTTest",
-        "temperature": 4.1,
-        "humidity": 80,
-        "userId": userId,
-        "crossGateId": "44-55-33"
-    }];
-    // const timestamp = "";
-    // console.log(message[0]['temp'].toString());
-    // console.log(sensorMac);
-    console.log(topic + ': ' + message);
-
+    const crossGateId = topic.split('/')[1];
+    messageArray = [];
+    message = JSON.parse(message);
+    Object.keys(message).forEach(key => messageArray.push(message[key]));
     const sensordaten = [];
-    const fridges = [];
-    sensordata.forEach(e =>
+    messageArray.forEach(e =>
         sensordaten.push(
             new Sensordaten({
                 _id: {
-                    sensorMac: e.sensorMac,
-                    timestamp: e.timestamp
+                    sensorMac: e['sensorMac'],
+                    // timestamp: ""
                 },
-                temperature: e.temperature,
-                humidity: e.humidity,
-                userId: e.userId,
-                crossGateId: e.crossGateId
+                temperature: e['temp'],
+                humidity: e['hum'],
+                userId: userId,
+                crossGateId: crossGateId
             })
         )
     )
     try {
-        const savedSensordaten = [];
         sensordaten.forEach(e =>
             e.save());
-        sensordaten.forEach(e =>
-            savedSensordaten.push(e));
-        console.log(savedSensordaten);
     } catch (error) {
-        console.log(error);
     };
-    sensordata.forEach(async e => {
+    messageArray.forEach(async e => {
         try {
             const kuehlgeraet = await Kuehlgeraet.find({ _id: e.sensorMac });
             if (kuehlgeraet.length == 0) {
                 await new Kuehlgeraet({
-                    _id: e.sensorMac,
+                    _id: e['sensorMac'],
                     fridgeId: "",
                     name: "",
-                    userId: e.userId,
-                    crossGateId: e.crossGateId
+                    userId: userId,
+                    crossGateId: crossGateId
                 }).save();
             }
         } catch (error) {
-            console.log(error);
         }
     }
     )
