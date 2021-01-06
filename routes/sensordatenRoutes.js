@@ -89,6 +89,7 @@ router.post('/ByMilliseconds', async (req, res) => {
 
 //CREATE
 //mehrere Sensordaten speichern
+//Wenn Mac-Adresse unbekannt -> neues KG
 router.post('/Save', async (req, res) => {
     const sensordaten = [];
     req.body.forEach(e =>
@@ -124,7 +125,11 @@ router.post('/Save', async (req, res) => {
                     fridgeId: "",
                     name: "",
                     userId: e.userId,
-                    crossGateId: e.crossGateId
+                    crossGateId: e.crossGateId,
+                    minTemp: 0,
+                    maxTemp: 0,
+                    minHum: 0,
+                    maxHum: 0,
                 }).save();
             }
         } catch (error) {
@@ -132,6 +137,30 @@ router.post('/Save', async (req, res) => {
         }
     }
     )
+});
+
+
+//DELETE
+//alle Sensordaten löschen
+//NUR FÜR ENTWICKLERZWECKE
+router.get('/DeleteAll', async (req, res) => {
+    try {
+        const sensordaten = await Sensordaten.deleteMany({});
+        res.json(sensordaten);
+    } catch (error) {
+        res.json({ message: error });
+    }
+});
+
+//Sensordaten eines Users löschen
+router.post('/DeleteByUser', async (req, res) => {
+    try {
+        const sensordaten = await Sensordaten.deleteMany({userId: req.body.userId});
+        res.json(sensordaten);
+        console.log("deleted");
+    } catch (error) {
+        res.json({ message: error });
+    }
 });
 
 
