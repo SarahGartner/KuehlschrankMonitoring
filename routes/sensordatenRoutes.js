@@ -155,8 +155,9 @@ router.get('/DeleteAll', async (req, res) => {
 //Sensordaten eines Users löschen
 router.post('/DeleteByUser', async (req, res) => {
     try {
-        const sensordaten = await Sensordaten.deleteMany({userId: res.body.userId});
+        const sensordaten = await Sensordaten.deleteMany({userId: req.body.userId});
         res.json(sensordaten);
+        console.log("deleted");
     } catch (error) {
         res.json({ message: error });
     }

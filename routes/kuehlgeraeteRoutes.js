@@ -92,7 +92,7 @@ router.get('/DeleteAll', async (req, res) => {
 //alle Kuehlgeraete eines Users löschen
 router.post('/DeleteByUser', async (req, res) => {
     try {
-        const kuehlgeraete = await Kuehlgeraet.deleteMany({userId: res.body.userId});
+        const kuehlgeraete = await Kuehlgeraet.deleteMany({userId: req.body.userId});
         res.json(kuehlgeraete);
     } catch (error) {
         res.json({ message: error });
