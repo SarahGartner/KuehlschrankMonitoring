@@ -77,5 +77,27 @@ router.post('/Update', async (req, res) => {
     }
 });
 
+//Delete
+//alle Kuehlgeraete löschen
+//NUR FÜR ENTWICKLERZWECKE
+router.get('/DeleteAll', async (req, res) => {
+    try {
+        const kuehlgeraete = await Kuehlgeraet.deleteMany({});
+        res.json(kuehlgeraete);
+    } catch (error) {
+        res.json({ message: error });
+    }
+});
+
+//alle Kuehlgeraete eines Users löschen
+router.post('/DeleteByUser', async (req, res) => {
+    try {
+        const kuehlgeraete = await Kuehlgeraet.deleteMany({userId: res.body.userId});
+        res.json(kuehlgeraete);
+    } catch (error) {
+        res.json({ message: error });
+    }
+});
+
 
 module.exports = router;

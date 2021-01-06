@@ -62,7 +62,7 @@ client.on('message', function (topic, message) {
             new Sensordaten({
                 _id: {
                     sensorMac: e['sensorMac'],
-                    // timestamp: ""
+                    // timestamp: e['timestamp]
                 },
                 temperature: e['temp'],
                 humidity: e['hum'],
