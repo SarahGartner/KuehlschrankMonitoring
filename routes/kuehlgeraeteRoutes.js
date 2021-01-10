@@ -49,6 +49,7 @@ router.post('/Save', async (req, res) => {
         maxTemperature: req.body.maxTemperature,
         minHumidity: req.body.minHumidity,
         maxHumidity: req.body.maxHumidity,
+        tempOK: true
     });
     console.log(kuehlgeraet);
     try {

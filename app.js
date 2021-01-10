@@ -27,8 +27,18 @@ mongoose.connect(process.env.DB,
     console.log('Mit Kühlschrankmonitoring MongoDB verbunden')
 );
 
+
 app.listen(port);
 
+
+
+
+// setInterval(function () {
+//     console.log("hi")
+//     //get all fridges
+//     //foreach fridge, get last sensordata
+//     //see if last sensordata is more than 5 minutes from time now
+// }, 5000)
 
 
 //MQTT
@@ -85,8 +95,40 @@ client.on('message', function (topic, message) {
                     fridgeId: "",
                     name: "",
                     userId: userId,
-                    crossGateId: crossGateId
+                    crossGateId: crossGateId,
+                    tempOK: true
                 }).save();
+            } else {
+                // console.log(kuehlgeraet);
+                // console.log(kuehlgeraet['minTemperature']);
+                // console.log((JSON.parse(JSON.stringify(kuehlgeraet[0]['minTemperature'])))['$numberDecimal']);
+                if (kuehlgeraet[0]['minTemperature'] != kuehlgeraet[0]['maxTemperature']) {
+                    messageArray.forEach(async e => {
+                        if (e['temp'] > (JSON.parse(JSON.stringify(kuehlgeraet[0]['minTemperature'])))['$numberDecimal'] &&
+                            e['temp'] < (JSON.parse(JSON.stringify(kuehlgeraet[0]['maxTemperature'])))['$numberDecimal']
+                        ) {
+                            if (!kuehlgeraet[0]['tempOK']) {
+                                try {
+                                    await Kuehlgeraet.findOneAndUpdate({ _id: kuehlgeraet[0]['_id'] }, {
+                                        tempOK: true
+                                    });
+                                } catch {
+                                }
+                            }
+                        } else {
+                            if (kuehlgeraet[0]['tempOK']) {
+                                //Hier wird Telegram verschickt
+                                console.log("ALARM: Außerhalb Temperaturbereich");
+                                try {
+                                    await Kuehlgeraet.findOneAndUpdate({ _id: kuehlgeraet[0]['_id'] }, {
+                                        tempOK: false,
+                                    });
+                                } catch {
+                                }
+                            }
+                        }
+                    });
+                }
             }
         } catch (error) {
         }
