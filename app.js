@@ -34,7 +34,7 @@ app.listen(port);
 //MQTT
 var mqtt = require('mqtt')
 var client = mqtt.connect('mqtt://test.mosquitto.org')
-user = [201501, 201508]
+user = [201501, 201508, 222]
 
 
 //bei User/save auch aufrufen!! 
@@ -62,7 +62,7 @@ client.on('message', function (topic, message) {
             new Sensordaten({
                 _id: {
                     sensorMac: e['sensorMac'],
-                    // timestamp: e['timestamp]
+                    timestamp: e['timestamp']
                 },
                 temperature: e['temp'],
                 humidity: e['hum'],
