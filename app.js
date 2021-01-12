@@ -110,9 +110,9 @@ client.on('message', function (topic, message) {
                 }).save();
             } else {
                 const user = await User.find({ _id: userId });
-                console.log(kuehlgeraet[0]['minTemperature']);
                 if (kuehlgeraet[0]['minTemperature'] != kuehlgeraet[0]['maxTemperature']) {
                     messageArray.forEach(async e => {
+                        //temp
                         if (e['temp'] > (JSON.parse(JSON.stringify(kuehlgeraet[0]['minTemperature'])))['$numberDecimal'] &&
                             e['temp'] < (JSON.parse(JSON.stringify(kuehlgeraet[0]['maxTemperature'])))['$numberDecimal']
                         ) {
@@ -126,20 +126,20 @@ client.on('message', function (topic, message) {
                             }
                         } else {
                             if (kuehlgeraet[0]['tempOK']) {
-                                // console.log("achtung");
-                                if (e['temp'] < (JSON.parse(JSON.stringify(kuehlgeraet[0]['minTemperature'])))['$numberDecimal'])
+                                if (e['temp'] < (JSON.parse(JSON.stringify(kuehlgeraet[0]['minTemperature'])))['$numberDecimal']) {
                                     bot.sendMessage(user[0]['telegramId'],
-                                        'Die Temperatur ihres Kühlgerätes "' + kuehlgeraet[0]['name']
-                                        + '" liegt unter der Minimaltemperatur. Gemessene Temperatur: '
+                                        'Die Temperatur deines Kühlgerätes "' + kuehlgeraet[0]['name'] + '" liegt ' +
+                                        ((JSON.parse(JSON.stringify(kuehlgeraet[0]['minTemperature'])))['$numberDecimal'] - e['temp']) +
+                                        '°C unter der Minimaltemperatur. Gemessene Temperatur: '
                                         + e['temp'] + "°C");
+                                }
                                 else if (e['temp'] > (JSON.parse(JSON.stringify(kuehlgeraet[0]['maxTemperature'])))['$numberDecimal'])
-                                    bot.sendMessage(880108458,
-                                        'Die Temperatur ihres Kühlgerätes "' + kuehlgeraet[0]['name']
-                                        + '" liegt über der Maximaltemperatur. Gemessene Temperatur: '
+                                    bot.sendMessage(user[0]['telegramId'],
+                                        'Die Temperatur deines Kühlgerätes "' + kuehlgeraet[0]['name'] + '" liegt ' +
+                                        (e['temp'] - (JSON.parse(JSON.stringify(kuehlgeraet[0]['maxTemperature'])))['$numberDecimal']) +
+                                        '°C über der Maximaltemperatur. Gemessene Temperatur: '
                                         + e['temp'] + "°C");
-                                console.log("ALARM: Außerhalb Temperaturbereich");
                                 try {
-                                    console.log("doneee");
                                     await Kuehlgeraet.findOneAndUpdate({ _id: kuehlgeraet[0]['_id'] }, {
                                         tempOK: false,
                                     });
@@ -147,6 +147,43 @@ client.on('message', function (topic, message) {
                                 }
                             }
                         }
+
+                        //hum
+                        if (e['hum'] > (JSON.parse(JSON.stringify(kuehlgeraet[0]['minHumidity'])))['$numberDecimal'] &&
+                            e['hum'] < (JSON.parse(JSON.stringify(kuehlgeraet[0]['maxHumidity'])))['$numberDecimal']
+                        ) {
+                            if (!kuehlgeraet[0]['humOK']) {
+                                try {
+                                    await Kuehlgeraet.findOneAndUpdate({ _id: kuehlgeraet[0]['_id'] }, {
+                                        humOK: true
+                                    });
+                                } catch {
+                                }
+                            }
+                        } else {
+                            if (kuehlgeraet[0]['humOK']) {
+                                if (e['hum'] < (JSON.parse(JSON.stringify(kuehlgeraet[0]['minHumidity'])))['$numberDecimal']) {
+                                    bot.sendMessage(user[0]['telegramId'],
+                                        'Die Luftfeuchtigkeit deines Kühlgerätes "' + kuehlgeraet[0]['name'] + '" liegt ' +
+                                        ((JSON.parse(JSON.stringify(kuehlgeraet[0]['minHumidity'])))['$numberDecimal'] - e['hum']) +
+                                        '% unter der Minimalluftfeuchtigkeit. Gemessene Luftfeuchtigkeit: '
+                                        + e['hum'] + "%");
+                                }
+                                else if (e['hum'] > (JSON.parse(JSON.stringify(kuehlgeraet[0]['maxHumidity'])))['$numberDecimal'])
+                                    bot.sendMessage(user[0]['telegramId'],
+                                        'Die Luftfeuchtigkeit deines Kühlgerätes "' + kuehlgeraet[0]['name'] + '" liegt ' +
+                                        (e['hum'] - (JSON.parse(JSON.stringify(kuehlgeraet[0]['maxHumidity'])))['$numberDecimal']) +
+                                        '% über der Maximalluftfeuchtigkeit. Gemessene Luftfeuchtigkeit: '
+                                        + e['hum'] + "%");
+                                try {
+                                    await Kuehlgeraet.findOneAndUpdate({ _id: kuehlgeraet[0]['_id'] }, {
+                                        humOK: false,
+                                    });
+                                } catch {
+                                }
+                            }
+                        }
+
                     });
                 }
             }
@@ -174,9 +211,9 @@ bot.on('message', (msg) => {
         //wenn client id einegegeben
         if (msg.text.toString() == '201508') {
             const user = await User.find({ '_id': msg.text.toString() });
-            if (user[0] != undefined){
+            if (user[0] != undefined) {
                 await User.findOneAndUpdate({ _id: msg.text.toString() }, {
-                    telegramId : chatId
+                    telegramId: chatId
                 });
             }
             console.log(user[0]['firstName']);

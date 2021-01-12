@@ -41,6 +41,16 @@ const KuehlgeraeteSchema = mongoose.Schema({
         type: Boolean,
         required: true,
         default: true
+    },
+    humOK: {
+        type: Boolean,
+        required: true,
+        default: true
+    },
+    intervalOK: {
+        type: Boolean,
+        required: true,
+        default: true
     }
 },{
     collection: 'fridges'

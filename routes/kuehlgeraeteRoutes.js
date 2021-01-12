@@ -48,7 +48,8 @@ router.post('/Save', async (req, res) => {
         maxTemperature: req.body.maxTemperature,
         minHumidity: req.body.minHumidity,
         maxHumidity: req.body.maxHumidity,
-        tempOK: true
+        tempOK: true,
+        humOK: true
     });
     try {
         const savedKuehlgeraet = await kuehlgeraet.save();
