@@ -197,8 +197,6 @@ client.on('message', function (topic, message) {
 //Telegram bot Konversation
 bot.on('message', (msg) => {
     newUser = true;
-    userId = 201508;
-    telegramId = 0;
     const chatId = msg.chat.id;
     (async () => {
         const user = await User.find({ 'telegramId': chatId });
