@@ -36,6 +36,21 @@ const KuehlgeraeteSchema = mongoose.Schema({
     maxHumidity: {
         type: mongoose.Schema.Types.Decimal128,
         required: false
+    },
+    tempOK: {
+        type: Boolean,
+        required: true,
+        default: true
+    },
+    humOK: {
+        type: Boolean,
+        required: true,
+        default: true
+    },
+    intervalOK: {
+        type: Boolean,
+        required: true,
+        default: true
     }
 },{
     collection: 'fridges'

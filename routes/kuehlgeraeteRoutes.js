@@ -1,5 +1,4 @@
 const express = require('express');
-const Sensordaten = require('../models/Sensordaten');
 const Kuehlgeraet = require('../models/Kuehlgeraete');
 const router = express.Router();
 
@@ -49,8 +48,9 @@ router.post('/Save', async (req, res) => {
         maxTemperature: req.body.maxTemperature,
         minHumidity: req.body.minHumidity,
         maxHumidity: req.body.maxHumidity,
+        tempOK: true,
+        humOK: true
     });
-    console.log(kuehlgeraet);
     try {
         const savedKuehlgeraet = await kuehlgeraet.save();
         res.json(savedKuehlgeraet);

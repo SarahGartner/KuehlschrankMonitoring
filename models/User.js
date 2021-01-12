@@ -1,18 +1,14 @@
 const mongoose = require('mongoose');
 
+// mongoose.set('useCreateIndex', true);
 
 const UserSchema = mongoose.Schema({
     _id: {
         type: String
     },
-    username: {
-        type: String,
-        required: true,
-        unique: true
-    },
     password: {
         type: String,
-        required: true,
+        required: true
     },
     firstName: {
         type: String,
@@ -30,16 +26,12 @@ const UserSchema = mongoose.Schema({
         type: String,
         required: true
     },
-    company: {
-        type: String,
-        required: false
-    },
-    companyId: {
-        type: String,
+    telegramId: {
+        type: Number,
         required: false
     }
 },{
-    collection: 'User'
+    collection: 'users'
 }
 );
 
