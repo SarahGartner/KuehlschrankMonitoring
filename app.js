@@ -21,9 +21,10 @@ const bot = new TelegramBot(token, { polling: true });
 //JSON aus Body auslesen
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
-app.use(cors({
-    origin: 'http://kuehlschrankmonitoring.azurewebsites.net/'
-  }));
+app.use(cors());
+// app.use(cors({
+//     origin: 'http://kuehlschrankmonitoring.azurewebsites.net/'
+//   }));
 
 //Routen
 app.use('/sensordata', sensordatenRoutes);
