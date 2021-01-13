@@ -21,7 +21,9 @@ const bot = new TelegramBot(token, { polling: true });
 //JSON aus Body auslesen
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
-app.use(cors());
+app.use(cors({
+    origin: 'http://kuehlschrankmonitoring.azurewebsites.net/'
+  }));
 
 //Routen
 app.use('/sensordata', sensordatenRoutes);
@@ -69,6 +71,14 @@ var client;
 })();
 
 
+//Reminder an die Sarah weil wegen Kosten pro Zugriff: 
+//Diese Route sollte noch umgebaut werden:
+//zurzeit werden jedes Mal mind 2 DB-Zugriffe gemacht
+//Besser wäre es, wenn bspw. immer wenn Kühlschränke bearbeitet werden (Save/Delete/Update)
+//eine Liste mit allen Kühlschränken geladen wird
+//und verglichen wird, ob die Id enthalten ist
+//so spart man sich den Read aufruf
+//man könnte so auch die Wertgrenzen vergleichen, ohne erneut auf die DB zugreiifen zu müssen
 //saveSensordata
 client.on('message', function (topic, message) {
     const userId = topic.split('/')[0];
