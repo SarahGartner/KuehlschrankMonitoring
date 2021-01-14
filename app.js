@@ -21,10 +21,10 @@ const bot = new TelegramBot(token, { polling: true });
 //JSON aus Body auslesen
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
-app.use(cors());
-// app.use(cors({
-//     origin: 'http://kuehlschrankmonitoring.azurewebsites.net/'
-//   }));
+// app.use(cors());
+app.use(cors({
+    origin: 'http://kuehlschrankmonitoring.azurewebsites.net/'
+}));
 
 //Routen
 app.use('/sensordata', sensordatenRoutes);
@@ -218,17 +218,17 @@ bot.on('message', (msg) => {
             console.log(userId);
         }
         //wenn client id einegegeben
-        if (msg.text.toString() == '201508') {
-            const user = await User.find({ '_id': msg.text.toString() });
-            if (user[0] != undefined) {
-                await User.findOneAndUpdate({ _id: msg.text.toString() }, {
-                    telegramId: chatId
-                });
-            }
-            console.log(user[0]['firstName']);
-            bot.sendMessage(chatId, "Hallo " + user[0]['firstName'] + ', dein Telegram Alert System wurde eingerichtet. Du bist mit dem Usernamen ' + user[0]['_id'] + " gespeichert.");
+        const userById = await User.find({ '_id': msg.text.toString() });
+        if (userById[0] != undefined) {
+            await User.findOneAndUpdate({ _id: msg.text.toString() }, {
+                telegramId: chatId
+            });
+            console.log(userById[0]['firstName']);
+            bot.sendMessage(chatId, "Hallo " + userById[0]['firstName'] + ', dein Telegram Alert System wurde eingerichtet. Du bist mit dem Usernamen ' + userById[0]['_id'] + " gespeichert.");
+            newUser = false;
             console.log(chatId);
-        } else if (msg.text.toString() == "/start") {
+        }
+        else if (msg.text.toString() == "/start") {
             bot.sendMessage(chatId, 'Willkommen! Bitte gib deine Client-Id ein, um deine Subscription abzuschließen!');
         } else if (newUser) {
             bot.sendMessage(chatId, 'Bitte gib deine Client-Id ein, um deine Subscription abzuschließen!');
