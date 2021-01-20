@@ -121,8 +121,8 @@ client.on('message', function (topic, message) {
                 }).save();
             } else {
                 const user = await User.find({ _id: userId });
-                if (kuehlgeraet[0]['minTemperature'] != kuehlgeraet[0]['maxTemperature']) {
-                    messageArray.forEach(async e => {
+                messageArray.forEach(async e => {
+                    if (kuehlgeraet[0]['minTemperature'] != kuehlgeraet[0]['maxTemperature']) {
                         //temp
                         if (e['temp'] > (JSON.parse(JSON.stringify(kuehlgeraet[0]['minTemperature'])))['$numberDecimal'] &&
                             e['temp'] < (JSON.parse(JSON.stringify(kuehlgeraet[0]['maxTemperature'])))['$numberDecimal']
@@ -140,14 +140,14 @@ client.on('message', function (topic, message) {
                                 if (e['temp'] < (JSON.parse(JSON.stringify(kuehlgeraet[0]['minTemperature'])))['$numberDecimal']) {
                                     bot.sendMessage(user[0]['telegramId'],
                                         'Die Temperatur deines Kühlgerätes "' + kuehlgeraet[0]['name'] + '" liegt ' +
-                                        ((JSON.parse(JSON.stringify(kuehlgeraet[0]['minTemperature'])))['$numberDecimal'] - e['temp']) +
+                                        Math.round(((JSON.parse(JSON.stringify(kuehlgeraet[0]['minTemperature'])))['$numberDecimal'] - e['temp'])*10)/10 +
                                         '°C unter der Minimaltemperatur. Gemessene Temperatur: '
                                         + e['temp'] + "°C");
                                 }
                                 else if (e['temp'] > (JSON.parse(JSON.stringify(kuehlgeraet[0]['maxTemperature'])))['$numberDecimal'])
                                     bot.sendMessage(user[0]['telegramId'],
                                         'Die Temperatur deines Kühlgerätes "' + kuehlgeraet[0]['name'] + '" liegt ' +
-                                        (e['temp'] - (JSON.parse(JSON.stringify(kuehlgeraet[0]['maxTemperature'])))['$numberDecimal']) +
+                                        Math.round((e['temp'] - (JSON.parse(JSON.stringify(kuehlgeraet[0]['maxTemperature'])))['$numberDecimal'])*10)/10 +
                                         '°C über der Maximaltemperatur. Gemessene Temperatur: '
                                         + e['temp'] + "°C");
                                 try {
@@ -158,45 +158,45 @@ client.on('message', function (topic, message) {
                                 }
                             }
                         }
-
                         //hum
-                        if (e['hum'] > (JSON.parse(JSON.stringify(kuehlgeraet[0]['minHumidity'])))['$numberDecimal'] &&
-                            e['hum'] < (JSON.parse(JSON.stringify(kuehlgeraet[0]['maxHumidity'])))['$numberDecimal']
-                        ) {
-                            if (!kuehlgeraet[0]['humOK']) {
-                                try {
-                                    await Kuehlgeraet.findOneAndUpdate({ _id: kuehlgeraet[0]['_id'] }, {
-                                        humOK: true
-                                    });
-                                } catch {
+                        if (kuehlgeraet[0]['minHumidity'] != kuehlgeraet[0]['maxHumidity']) {
+                            if (e['hum'] > (JSON.parse(JSON.stringify(kuehlgeraet[0]['minHumidity'])))['$numberDecimal'] &&
+                                e['hum'] < (JSON.parse(JSON.stringify(kuehlgeraet[0]['maxHumidity'])))['$numberDecimal']
+                            ) {
+                                if (!kuehlgeraet[0]['humOK']) {
+                                    try {
+                                        await Kuehlgeraet.findOneAndUpdate({ _id: kuehlgeraet[0]['_id'] }, {
+                                            humOK: true
+                                        });
+                                    } catch {
+                                    }
                                 }
-                            }
-                        } else {
-                            if (kuehlgeraet[0]['humOK']) {
-                                if (e['hum'] < (JSON.parse(JSON.stringify(kuehlgeraet[0]['minHumidity'])))['$numberDecimal']) {
-                                    bot.sendMessage(user[0]['telegramId'],
-                                        'Die Luftfeuchtigkeit deines Kühlgerätes "' + kuehlgeraet[0]['name'] + '" liegt ' +
-                                        ((JSON.parse(JSON.stringify(kuehlgeraet[0]['minHumidity'])))['$numberDecimal'] - e['hum']) +
-                                        '% unter der Minimalluftfeuchtigkeit. Gemessene Luftfeuchtigkeit: '
-                                        + e['hum'] + "%");
-                                }
-                                else if (e['hum'] > (JSON.parse(JSON.stringify(kuehlgeraet[0]['maxHumidity'])))['$numberDecimal'])
-                                    bot.sendMessage(user[0]['telegramId'],
-                                        'Die Luftfeuchtigkeit deines Kühlgerätes "' + kuehlgeraet[0]['name'] + '" liegt ' +
-                                        (e['hum'] - (JSON.parse(JSON.stringify(kuehlgeraet[0]['maxHumidity'])))['$numberDecimal']) +
-                                        '% über der Maximalluftfeuchtigkeit. Gemessene Luftfeuchtigkeit: '
-                                        + e['hum'] + "%");
-                                try {
-                                    await Kuehlgeraet.findOneAndUpdate({ _id: kuehlgeraet[0]['_id'] }, {
-                                        humOK: false,
-                                    });
-                                } catch {
+                            } else {
+                                if (kuehlgeraet[0]['humOK']) {
+                                    if (e['hum'] < (JSON.parse(JSON.stringify(kuehlgeraet[0]['minHumidity'])))['$numberDecimal']) {
+                                        bot.sendMessage(user[0]['telegramId'],
+                                            'Die Luftfeuchtigkeit deines Kühlgerätes "' + kuehlgeraet[0]['name'] + '" liegt ' +
+                                            Math.round(((JSON.parse(JSON.stringify(kuehlgeraet[0]['minHumidity'])))['$numberDecimal'] - e['hum'])*10)/10 +
+                                            '% unter der Minimalluftfeuchtigkeit. Gemessene Luftfeuchtigkeit: '
+                                            + e['hum'] + "%");
+                                    }
+                                    else if (e['hum'] > (JSON.parse(JSON.stringify(kuehlgeraet[0]['maxHumidity'])))['$numberDecimal'])
+                                        bot.sendMessage(user[0]['telegramId'],
+                                            'Die Luftfeuchtigkeit deines Kühlgerätes "' + kuehlgeraet[0]['name'] + '" liegt ' +
+                                            Math.round((e['hum'] - (JSON.parse(JSON.stringify(kuehlgeraet[0]['maxHumidity'])))['$numberDecimal'])*10)/10 +
+                                            '% über der Maximalluftfeuchtigkeit. Gemessene Luftfeuchtigkeit: '
+                                            + e['hum'] + "%");
+                                    try {
+                                        await Kuehlgeraet.findOneAndUpdate({ _id: kuehlgeraet[0]['_id'] }, {
+                                            humOK: false,
+                                        });
+                                    } catch {
+                                    }
                                 }
                             }
                         }
-
-                    });
-                }
+                    }
+                });
             }
         } catch (error) {
         }
