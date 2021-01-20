@@ -233,7 +233,8 @@ bot.on('message', (msg) => {
         } else if (newUser) {
             bot.sendMessage(chatId, 'Bitte gib deine Client-Id ein, um deine Subscription abzuschließen!');
         } else {
-            bot.sendMessage(chatId, "Hallo " + user[0]['firstName'] + ". Ich kann dir leider keine Fragen beantworten.");
+            bot.sendMessage(chatId, "Hallo " + user[0]['firstName'] + 
+            ". Ich kann dir leider keine Fragen beantworten. Um deine Sensorwerte auszulesen besuche die Seite http://kuehlschrankmonitoring.azurewebsites.net/ und logge dich mit deinem User-Id " + user[0]['_id'] + " ein!");
         }
     })();
 });
