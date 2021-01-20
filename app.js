@@ -56,17 +56,19 @@ setInterval(async function () {
                 await Kuehlgeraet.findOneAndUpdate({ _id: e['_id'] }, {
                     intervalOK: false
                 });
-                bot.sendMessage(user['telegramId'], 'Achtung! Dein Kühlgerät "' + e['name'] + '" hat in den letzten 10 Minuten keine Daten gesendet!');
-                console.log("HIER TELEGRAM");
+                if (user['telegramId'] != undefined) {
+                    bot.sendMessage(user['telegramId'], 'Achtung! Dein Kühlgerät "' + e['name'] + '" hat in den letzten 10 Minuten keine Daten gesendet!');
+                }
             } else if (!e['intervalOK'] && data[data.length - 1]['_id']['timestamp'] >= date) {
                 const user = await User.findOne({ '_id': e['userId'] });
                 await Kuehlgeraet.findOneAndUpdate({ _id: e['_id'] }, {
                     intervalOK: true
                 });
-                bot.sendMessage(user['telegramId'], 'Dein Kühlgerät "' + e['name'] + 
-                '" sendet wieder Daten! Die aktuelle Temperatur beträgt: ' + JSON.parse(JSON.stringify(data[data.length - 1]['temperature']))['$numberDecimal'] + 
-                "°C und die Luftfeuchtigkeit beträgt: " + JSON.parse(JSON.stringify(data[data.length - 1]['humidity']))['$numberDecimal'] + "%.");
-                console.log("ALLES WIEDER OK");
+                if (user['telegramId'] != undefined) {
+                    bot.sendMessage(user['telegramId'], 'Dein Kühlgerät "' + e['name'] +
+                        '" sendet wieder Daten! Die aktuelle Temperatur beträgt: ' + JSON.parse(JSON.stringify(data[data.length - 1]['temperature']))['$numberDecimal'] +
+                        "°C und die Luftfeuchtigkeit beträgt: " + JSON.parse(JSON.stringify(data[data.length - 1]['humidity']))['$numberDecimal'] + "%.");
+                }
             }
         })
     } catch (err) {
