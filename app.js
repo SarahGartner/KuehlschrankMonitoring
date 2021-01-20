@@ -42,14 +42,38 @@ mongoose.connect(process.env.DB,
 app.listen(port);
 
 
+//Überprüfe ob in letzten 10 Minuten Sensordaten gekommen sind.
+//Telegram bot
+setInterval(async function () {
+    const date = new Date();
+    date.setTime(date.getTime() - (10 * 60 * 1000));
+    try {
+        const kuehlgeraet = await Kuehlgeraet.find();
+        kuehlgeraet.forEach(async e => {
+            const data = await Sensordaten.find({ '_id.sensorMac': e['_id'] });
+            if (e['intervalOK'] && data[data.length - 1]['_id']['timestamp'] < date) {
+                const user = await User.findOne({ '_id': e['userId'] });
+                await Kuehlgeraet.findOneAndUpdate({ _id: e['_id'] }, {
+                    intervalOK: false
+                });
+                bot.sendMessage(user['telegramId'], 'Achtung! Dein Kühlgerät "' + e['name'] + '" hat in den letzten 10 Minuten keine Daten gesendet!');
+                console.log("HIER TELEGRAM");
+            } else if (!e['intervalOK'] && data[data.length - 1]['_id']['timestamp'] >= date) {
+                const user = await User.findOne({ '_id': e['userId'] });
+                await Kuehlgeraet.findOneAndUpdate({ _id: e['_id'] }, {
+                    intervalOK: true
+                });
+                bot.sendMessage(user['telegramId'], 'Dein Kühlgerät "' + e['name'] + 
+                '" sendet wieder Daten! Die aktuelle Temperatur beträgt: ' + JSON.parse(JSON.stringify(data[data.length - 1]['temperature']))['$numberDecimal'] + 
+                "°C und die Luftfeuchtigkeit beträgt: " + JSON.parse(JSON.stringify(data[data.length - 1]['humidity']))['$numberDecimal'] + "%.");
+                console.log("ALLES WIEDER OK");
+            }
+        })
+    } catch (err) {
+        console.log(err);
+    }
+}, (10 * 60 * 1000))
 
-
-// setInterval(function () {
-//     console.log("hi")
-//     //get all fridges
-//     //foreach fridge, get last sensordata
-//     //see if last sensordata is more than 5 minutes from time now
-// }, 5000)
 
 
 //MQTT
@@ -140,14 +164,14 @@ client.on('message', function (topic, message) {
                                 if (e['temp'] < (JSON.parse(JSON.stringify(kuehlgeraet[0]['minTemperature'])))['$numberDecimal']) {
                                     bot.sendMessage(user[0]['telegramId'],
                                         'Die Temperatur deines Kühlgerätes "' + kuehlgeraet[0]['name'] + '" liegt ' +
-                                        Math.round(((JSON.parse(JSON.stringify(kuehlgeraet[0]['minTemperature'])))['$numberDecimal'] - e['temp'])*10)/10 +
+                                        Math.round(((JSON.parse(JSON.stringify(kuehlgeraet[0]['minTemperature'])))['$numberDecimal'] - e['temp']) * 10) / 10 +
                                         '°C unter der Minimaltemperatur. Gemessene Temperatur: '
                                         + e['temp'] + "°C");
                                 }
                                 else if (e['temp'] > (JSON.parse(JSON.stringify(kuehlgeraet[0]['maxTemperature'])))['$numberDecimal'])
                                     bot.sendMessage(user[0]['telegramId'],
                                         'Die Temperatur deines Kühlgerätes "' + kuehlgeraet[0]['name'] + '" liegt ' +
-                                        Math.round((e['temp'] - (JSON.parse(JSON.stringify(kuehlgeraet[0]['maxTemperature'])))['$numberDecimal'])*10)/10 +
+                                        Math.round((e['temp'] - (JSON.parse(JSON.stringify(kuehlgeraet[0]['maxTemperature'])))['$numberDecimal']) * 10) / 10 +
                                         '°C über der Maximaltemperatur. Gemessene Temperatur: '
                                         + e['temp'] + "°C");
                                 try {
@@ -176,14 +200,14 @@ client.on('message', function (topic, message) {
                                     if (e['hum'] < (JSON.parse(JSON.stringify(kuehlgeraet[0]['minHumidity'])))['$numberDecimal']) {
                                         bot.sendMessage(user[0]['telegramId'],
                                             'Die Luftfeuchtigkeit deines Kühlgerätes "' + kuehlgeraet[0]['name'] + '" liegt ' +
-                                            Math.round(((JSON.parse(JSON.stringify(kuehlgeraet[0]['minHumidity'])))['$numberDecimal'] - e['hum'])*10)/10 +
+                                            Math.round(((JSON.parse(JSON.stringify(kuehlgeraet[0]['minHumidity'])))['$numberDecimal'] - e['hum']) * 10) / 10 +
                                             '% unter der Minimalluftfeuchtigkeit. Gemessene Luftfeuchtigkeit: '
                                             + e['hum'] + "%");
                                     }
                                     else if (e['hum'] > (JSON.parse(JSON.stringify(kuehlgeraet[0]['maxHumidity'])))['$numberDecimal'])
                                         bot.sendMessage(user[0]['telegramId'],
                                             'Die Luftfeuchtigkeit deines Kühlgerätes "' + kuehlgeraet[0]['name'] + '" liegt ' +
-                                            Math.round((e['hum'] - (JSON.parse(JSON.stringify(kuehlgeraet[0]['maxHumidity'])))['$numberDecimal'])*10)/10 +
+                                            Math.round((e['hum'] - (JSON.parse(JSON.stringify(kuehlgeraet[0]['maxHumidity'])))['$numberDecimal']) * 10) / 10 +
                                             '% über der Maximalluftfeuchtigkeit. Gemessene Luftfeuchtigkeit: '
                                             + e['hum'] + "%");
                                     try {
@@ -233,8 +257,8 @@ bot.on('message', (msg) => {
         } else if (newUser) {
             bot.sendMessage(chatId, 'Bitte gib deine Client-Id ein, um deine Subscription abzuschließen!');
         } else {
-            bot.sendMessage(chatId, "Hallo " + user[0]['firstName'] + 
-            ". Ich kann dir leider keine Fragen beantworten. Um deine Sensorwerte auszulesen besuche die Seite http://kuehlschrankmonitoring.azurewebsites.net/ und logge dich mit deinem User-Id " + user[0]['_id'] + " ein!");
+            bot.sendMessage(chatId, "Hallo " + user[0]['firstName'] +
+                ". Ich kann dir leider keine Fragen beantworten. Um deine Sensorwerte auszulesen besuche die Seite http://kuehlschrankmonitoring.azurewebsites.net/ und logge dich mit deinem User-Id " + user[0]['_id'] + " ein!");
         }
     })();
 });

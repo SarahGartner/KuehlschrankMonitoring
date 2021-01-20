@@ -15,7 +15,7 @@ const KuehlgeraeteSchema = mongoose.Schema({
     },
     userId: {
         type: String,
-        required: false
+        required: true
     },
     crossGateId: {
         type: String,
