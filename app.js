@@ -59,16 +59,16 @@ setInterval(async function () {
                 if (user['telegramId'] != undefined) {
                     bot.sendMessage(user['telegramId'], 'Achtung! Dein Kühlgerät "' + e['name'] + '" hat in den letzten 10 Minuten keine Daten gesendet!');
                 }
-            } else if (!e['intervalOK'] && data[data.length - 1]['_id']['timestamp'] >= date) {
-                const user = await User.findOne({ '_id': e['userId'] });
-                await Kuehlgeraet.findOneAndUpdate({ _id: e['_id'] }, {
-                    intervalOK: true
-                });
-                if (user['telegramId'] != undefined) {
-                    bot.sendMessage(user['telegramId'], 'Dein Kühlgerät "' + e['name'] +
-                        '" sendet wieder Daten! Die aktuelle Temperatur beträgt: ' + JSON.parse(JSON.stringify(data[data.length - 1]['temperature']))['$numberDecimal'] +
-                        "°C und die Luftfeuchtigkeit beträgt: " + JSON.parse(JSON.stringify(data[data.length - 1]['humidity']))['$numberDecimal'] + "%.");
-                }
+                // } else if (!e['intervalOK'] && data[data.length - 1]['_id']['timestamp'] >= date) {
+                //     const user = await User.findOne({ '_id': e['userId'] });
+                //     await Kuehlgeraet.findOneAndUpdate({ _id: e['_id'] }, {
+                //         intervalOK: true
+                //     });
+                //     if (user['telegramId'] != undefined) {
+                //         bot.sendMessage(user['telegramId'], 'Dein Kühlgerät "' + e['name'] +
+                //             '" sendet wieder Daten! Die aktuelle Temperatur beträgt: ' + JSON.parse(JSON.stringify(data[data.length - 1]['temperature']))['$numberDecimal'] +
+                //             "°C und die Luftfeuchtigkeit beträgt: " + JSON.parse(JSON.stringify(data[data.length - 1]['humidity']))['$numberDecimal'] + "%.");
+                //     }
             }
         })
     } catch (err) {
@@ -148,6 +148,16 @@ client.on('message', function (topic, message) {
             } else {
                 const user = await User.find({ _id: userId });
                 messageArray.forEach(async e => {
+                    if (!kuehlgeraet[0]['intervalOK']) {
+                        await Kuehlgeraet.findOneAndUpdate({ _id: kuehlgeraet[0]['_id'] }, {
+                            intervalOK: true
+                        });
+                        if (user[0]['telegramId'] != undefined) {
+                            bot.sendMessage(user[0]['telegramId'], 'Dein Kühlgerät "' + kuehlgeraet[0]['name'] +
+                                '" sendet wieder Daten! Die aktuelle Temperatur beträgt: ' + e['temp'] +
+                                "°C und die Luftfeuchtigkeit beträgt: " + e['hum'] + "%.");
+                        }
+                    }
                     if (kuehlgeraet[0]['minTemperature'] != kuehlgeraet[0]['maxTemperature']) {
                         //temp
                         if (e['temp'] > (JSON.parse(JSON.stringify(kuehlgeraet[0]['minTemperature'])))['$numberDecimal'] &&
