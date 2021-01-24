@@ -57,6 +57,11 @@ setInterval(async function () {
                     intervalOK: false
                 });
                 if (user['telegramId'] != undefined) {
+                    var name;
+                    if (e['name'] != "")
+                        name = e['name']
+                    else
+                        name = e['_id']
                     bot.sendMessage(user['telegramId'], 'Achtung! Dein Kühlgerät "' + e['name'] + '" hat in den letzten 10 Minuten keine Daten gesendet!');
                 }
                 // } else if (!e['intervalOK'] && data[data.length - 1]['_id']['timestamp'] >= date) {

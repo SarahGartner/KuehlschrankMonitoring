@@ -163,5 +163,16 @@ router.post('/DeleteByUser', async (req, res) => {
     }
 });
 
+//Sensordaten eines Kühlschrankes löschen
+router.post('/DeleteByMac', async (req, res) => {
+    try {
+        const sensordaten = await Sensordaten.deleteMany({'_id.sensorMac': req.body.sensorMac });
+        res.json(sensordaten);
+        console.log("deleted");
+    } catch (error) {
+        res.json({ message: error });
+    }
+});
+
 
 module.exports = router;

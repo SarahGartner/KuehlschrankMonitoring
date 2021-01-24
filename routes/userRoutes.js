@@ -56,3 +56,14 @@ router.post('/Save', async (req, res) => {
 });
 
 module.exports = router;
+
+//DELETE
+//Kühlgerät nach Id löschen
+router.post('/DeleteById', async (req, res) => {
+    try {
+        const user = await User.deleteMany({_id: req.body._id});
+        res.json(user);
+    } catch (error) {
+        res.json({ message: error });
+    }
+});
