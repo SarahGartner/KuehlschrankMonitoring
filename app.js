@@ -181,14 +181,14 @@ client.on('message', function (topic, message) {
                                 if (e['temp'] < (JSON.parse(JSON.stringify(kuehlgeraet[0]['minTemperature'])))['$numberDecimal']) {
                                     bot.sendMessage(user[0]['telegramId'],
                                         'Die Temperatur deines Kühlgerätes "' + kuehlgeraet[0]['name'] + '" liegt ' +
-                                        Math.round(((JSON.parse(JSON.stringify(kuehlgeraet[0]['minTemperature'])))['$numberDecimal'] - e['temp']) * 10) / 10 +
+                                        Math.round(((JSON.parse(JSON.stringify(kuehlgeraet[0]['minTemperature'])))['$numberDecimal'] - e['temp']) * 100) / 100 +
                                         '°C unter der Minimaltemperatur. Gemessene Temperatur: '
                                         + e['temp'] + "°C");
                                 }
                                 else if (e['temp'] > (JSON.parse(JSON.stringify(kuehlgeraet[0]['maxTemperature'])))['$numberDecimal'])
                                     bot.sendMessage(user[0]['telegramId'],
                                         'Die Temperatur deines Kühlgerätes "' + kuehlgeraet[0]['name'] + '" liegt ' +
-                                        Math.round((e['temp'] - (JSON.parse(JSON.stringify(kuehlgeraet[0]['maxTemperature'])))['$numberDecimal']) * 10) / 10 +
+                                        Math.round((e['temp'] - (JSON.parse(JSON.stringify(kuehlgeraet[0]['maxTemperature'])))['$numberDecimal']) * 100) / 010 +
                                         '°C über der Maximaltemperatur. Gemessene Temperatur: '
                                         + e['temp'] + "°C");
                                 try {
@@ -217,14 +217,14 @@ client.on('message', function (topic, message) {
                                     if (e['hum'] < (JSON.parse(JSON.stringify(kuehlgeraet[0]['minHumidity'])))['$numberDecimal']) {
                                         bot.sendMessage(user[0]['telegramId'],
                                             'Die Luftfeuchtigkeit deines Kühlgerätes "' + kuehlgeraet[0]['name'] + '" liegt ' +
-                                            Math.round(((JSON.parse(JSON.stringify(kuehlgeraet[0]['minHumidity'])))['$numberDecimal'] - e['hum']) * 10) / 10 +
+                                            Math.round(((JSON.parse(JSON.stringify(kuehlgeraet[0]['minHumidity'])))['$numberDecimal'] - e['hum']) * 100) / 100 +
                                             '% unter der Minimalluftfeuchtigkeit. Gemessene Luftfeuchtigkeit: '
                                             + e['hum'] + "%");
                                     }
                                     else if (e['hum'] > (JSON.parse(JSON.stringify(kuehlgeraet[0]['maxHumidity'])))['$numberDecimal'])
                                         bot.sendMessage(user[0]['telegramId'],
                                             'Die Luftfeuchtigkeit deines Kühlgerätes "' + kuehlgeraet[0]['name'] + '" liegt ' +
-                                            Math.round((e['hum'] - (JSON.parse(JSON.stringify(kuehlgeraet[0]['maxHumidity'])))['$numberDecimal']) * 10) / 10 +
+                                            Math.round((e['hum'] - (JSON.parse(JSON.stringify(kuehlgeraet[0]['maxHumidity'])))['$numberDecimal']) * 100) / 100 +
                                             '% über der Maximalluftfeuchtigkeit. Gemessene Luftfeuchtigkeit: '
                                             + e['hum'] + "%");
                                     try {
