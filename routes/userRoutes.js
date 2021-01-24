@@ -1,6 +1,7 @@
 const express = require('express');
 const User = require('../models/User');
 const router = express.Router();
+var mqtt = require('mqtt');
 
 //READ
 //Alle User aus der DB
@@ -49,10 +50,14 @@ router.post('/Save', async (req, res) => {
     try {
         const savedUser = await user.save();
         res.json(savedUser);
+        client.subscribe(savedUser['_id'] + '/#', function (err) {
+            if (!err) {
+            }
+        });
     } catch (error) {
         res.json({ message: error });
         console.log(error);
-    }
+    };
 });
 
 module.exports = router;
@@ -61,7 +66,7 @@ module.exports = router;
 //Kühlgerät nach Id löschen
 router.post('/DeleteById', async (req, res) => {
     try {
-        const user = await User.deleteMany({_id: req.body._id});
+        const user = await User.deleteMany({ _id: req.body._id });
         res.json(user);
     } catch (error) {
         res.json({ message: error });
