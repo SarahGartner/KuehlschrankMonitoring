@@ -62,18 +62,8 @@ setInterval(async function () {
                         name = e['name']
                     else
                         name = e['_id']
-                    bot.sendMessage(user['telegramId'], 'Achtung! Dein Kühlgerät "' + e['name'] + '" hat in den letzten 10 Minuten keine Daten gesendet!');
+                    bot.sendMessage(user['telegramId'], 'Achtung! Dein Kühlgerät "' + name + '" hat in den letzten 10 Minuten keine Daten gesendet!');
                 }
-                // } else if (!e['intervalOK'] && data[data.length - 1]['_id']['timestamp'] >= date) {
-                //     const user = await User.findOne({ '_id': e['userId'] });
-                //     await Kuehlgeraet.findOneAndUpdate({ _id: e['_id'] }, {
-                //         intervalOK: true
-                //     });
-                //     if (user['telegramId'] != undefined) {
-                //         bot.sendMessage(user['telegramId'], 'Dein Kühlgerät "' + e['name'] +
-                //             '" sendet wieder Daten! Die aktuelle Temperatur beträgt: ' + JSON.parse(JSON.stringify(data[data.length - 1]['temperature']))['$numberDecimal'] +
-                //             "°C und die Luftfeuchtigkeit beträgt: " + JSON.parse(JSON.stringify(data[data.length - 1]['humidity']))['$numberDecimal'] + "%.");
-                //     }
             }
         })
     } catch (err) {
