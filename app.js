@@ -74,7 +74,8 @@ setInterval(async function () {
 
 
 //MQTT
-var mqtt = require('mqtt')
+var mqtt = require('mqtt');
+const { isEmptyObject } = require('jquery');
 var users = [];
 var client;
 
@@ -143,7 +144,10 @@ client.on('message', function (topic, message) {
             } else {
                 const user = await User.find({ _id: userId });
                 messageArray.forEach(async e => {
-                    fridgeName = kuehlgeraet[0]['name'] == "" || undefined ? kuehlgeraet[0]['name'] : kuehlgeraet[0]['_id'];
+                    if(kuehlgeraet[0]['name'].toString == "" || kuehlgeraet[0]['name'] == undefined)
+                        fridgeName = kuehlgeraet[0]['name'];
+                    else
+                        fridgeName = kuehlgeraet[0]['_id'];
                     if (!kuehlgeraet[0]['intervalOK']) {
                         await Kuehlgeraet.findOneAndUpdate({ _id: kuehlgeraet[0]['_id'] }, {
                             intervalOK: true
