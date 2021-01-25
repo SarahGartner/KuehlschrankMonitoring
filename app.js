@@ -142,7 +142,7 @@ client.on('message', function (topic, message) {
                 }).save();
             } else {
                 const user = await User.find({ _id: userId });
-                fridgeName = kuehlgeraet[0]['name'] == "" ? kuehlgeraet[0]['name'] : kuehlgeraet[0]['_id'];
+                fridgeName = kuehlgeraet[0]['name'] == "" || undefined ? kuehlgeraet[0]['name'] : kuehlgeraet[0]['_id'];
                 messageArray.forEach(async e => {
                     if (!kuehlgeraet[0]['intervalOK']) {
                         await Kuehlgeraet.findOneAndUpdate({ _id: kuehlgeraet[0]['_id'] }, {
