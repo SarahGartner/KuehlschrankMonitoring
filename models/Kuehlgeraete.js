@@ -22,19 +22,19 @@ const KuehlgeraeteSchema = mongoose.Schema({
         required: false
     },
     minTemperature: {
-        type: mongoose.Schema.Types.Decimal128,
+        type: Number,
         required: false
     },
     maxTemperature: {
-        type: mongoose.Schema.Types.Decimal128,
+        type: Number,
         required: false
     },
     minHumidity: {
-        type: mongoose.Schema.Types.Decimal128,
+        type: Number,
         required: false
     },
     maxHumidity: {
-        type: mongoose.Schema.Types.Decimal128,
+        type: Number,
         required: false
     },
     tempOK: {
