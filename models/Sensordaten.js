@@ -14,11 +14,11 @@ const SensordatenSchema = mongoose.Schema({
         }
     },
     temperature: {
-        type: mongoose.Schema.Types.Decimal128,
+        type: Number,
         required: false
     },
     humidity: {
-        type: mongoose.Schema.Types.Decimal128,
+        type: Number,
         required: false
     },
     userId: {
