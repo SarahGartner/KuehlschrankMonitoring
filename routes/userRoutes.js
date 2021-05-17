@@ -1,7 +1,6 @@
 const express = require('express');
 const User = require('../models/User');
 const router = express.Router();
-var mqtt = require('mqtt');
 
 //READ
 //Alle User aus der DB
@@ -49,11 +48,14 @@ router.post('/Save', async (req, res) => {
     try {
         const savedUser = await user.save();
         res.json(savedUser);
-        client = mqtt.connect('mqtt://test.mosquitto.org');
-        client.subscribe(savedUser['_id'] + '/#', function (err) {
-            if (!err) {
-            }
-        });
+        //Muss irgendwie auf client aus app.js zugreifen
+        // var mqtt = require('mqtt');
+        // client = mqtt.connect('mqtt://test.mosquitto.org');
+        // const client = require('./app.js')
+        // client.subscribe(req.body.userId + '/#', function (err) {
+        //     if (!err) {
+        //     }
+        // });
     } catch (error) {
         res.json({ message: error });
         console.log(error);
