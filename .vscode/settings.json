@@ -2,5 +2,7 @@
     "appService.zipIgnorePattern": [
         "node_modules{,/**}",
         ".vscode{,/**}"
-    ]
+    ],
+    "appService.defaultWebAppToDeploy": "/subscriptions/1771c9b2-ce7e-4eb2-b9b6-7159a1cbdba2/resourceGroups/temperaturmonitoring/providers/Microsoft.Web/sites/temperaturmonitoring-api",
+    "appService.deploySubpath": "."
 }

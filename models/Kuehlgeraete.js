@@ -51,6 +51,13 @@ const KuehlgeraeteSchema = mongoose.Schema({
         type: Boolean,
         required: true,
         default: true
+    },
+    gps: {
+        type: Boolean,
+        default: false
+    },
+    batteryCharge: {
+        type: Number
     }
 },{
     collection: 'fridges'

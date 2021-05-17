@@ -29,6 +29,10 @@ const UserSchema = mongoose.Schema({
     telegramId: {
         type: Number,
         required: false
+    },
+    token: {
+        type: String,
+        required: false
     }
 },{
     collection: 'users'

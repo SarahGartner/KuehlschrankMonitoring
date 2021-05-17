@@ -106,11 +106,15 @@ var client;
 client.on('message', function (topic, message) {
     const userId = topic.split('/')[0];
     const crossGateId = topic.split('/')[1];
+    var gps = false;
+    console.log(userId + crossGateId);
     messageArray = [];
     message = JSON.parse(message);
     Object.keys(message).forEach(key => messageArray.push(message[key]));
     const sensordaten = [];
     messageArray.forEach(e =>
+        {
+        gps = (e['long'] != null && e['lat'] != null);
         sensordaten.push(
             new Sensordaten({
                 _id: {
@@ -120,9 +124,11 @@ client.on('message', function (topic, message) {
                 temperature: e['temp'],
                 humidity: e['hum'],
                 userId: userId,
-                crossGateId: crossGateId
+                crossGateId: crossGateId,
+                longitude: e['long'],
+                latitude: e['lat']
             })
-        )
+        )}
     )
     try {
         sensordaten.forEach(e =>
@@ -139,9 +145,15 @@ client.on('message', function (topic, message) {
                     name: "",
                     userId: userId,
                     crossGateId: crossGateId,
-                    tempOK: true
+                    tempOK: true,
+                    gps: gps
                 }).save();
             } else {
+                if (kuehlgeraet.gps != gps){
+                    await Kuehlgeraet.findOneAndUpdate({ _id: kuehlgeraet[0]['_id'] }, {
+                        gps: gps
+                    });
+                }
                 const user = await User.find({ _id: userId });
                 messageArray.forEach(async e => {
                     if(kuehlgeraet[0]['name'].toString == "" || kuehlgeraet[0]['name'] == undefined)
@@ -240,7 +252,6 @@ client.on('message', function (topic, message) {
     )
 })
 
-
 //Telegram bot Konversation
 bot.on('message', (msg) => {
     newUser = true;
@@ -253,7 +264,7 @@ bot.on('message', (msg) => {
             userId = user[0]['_id'];
             console.log(userId);
         }
-        //wenn client id einegegeben
+        //wenn client id eingegeben
         const userById = await User.find({ '_id': msg.text.toString() });
         if (userById[0] != undefined) {
             await User.findOneAndUpdate({ _id: msg.text.toString() }, {
@@ -272,5 +283,10 @@ bot.on('message', (msg) => {
             bot.sendMessage(chatId, "Hallo " + user[0]['firstName'] +
                 ". Ich kann dir leider keine Fragen beantworten. Um deine Sensorwerte auszulesen besuche die Seite http://kuehlschrankmonitoring.azurewebsites.net/ und logge dich mit deinem User-Id " + user[0]['_id'] + " ein!");
         }
+        // if (msg.text.toString() == "Geräte") {
+        //     const fridge = await Fridge.find({ '_id': user[0]['_id']});
+        //     bot.sendMessage(chatId, "Hallo " + user[0]['firstName'] + "! Deine Geräte: " +
+        //     "");
+        // }
     })();
 });

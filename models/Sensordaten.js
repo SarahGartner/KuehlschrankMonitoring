@@ -27,6 +27,12 @@ const SensordatenSchema = mongoose.Schema({
     crossGateId: {
         type: String
     },
+    longitude: {
+        type: Number
+    },
+    latitude: {
+        type: Number
+    }
 },{
     collection: 'Sensordata'
 }
