@@ -49,6 +49,7 @@ router.post('/Save', async (req, res) => {
     try {
         const savedUser = await user.save();
         res.json(savedUser);
+        client = mqtt.connect('mqtt://test.mosquitto.org');
         client.subscribe(savedUser['_id'] + '/#', function (err) {
             if (!err) {
             }
