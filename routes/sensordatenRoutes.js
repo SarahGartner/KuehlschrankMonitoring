@@ -17,9 +17,9 @@ router.get('/', async (req, res) => {
 
 
 //Alle Sensordaten eines Geräts
-router.post('/ByMac', async (req, res) => {
+router.get('/ByMac', async (req, res) => {
     try {
-        const sensordaten = await Sensordaten.find({ '_id.sensorMac': req.body.sensorMac });
+        const sensordaten = await Sensordaten.find({ '_id.sensorMac': req.query.sensorMac });
         res.json(sensordaten);
     } catch (error) {
         res.json({ message: error });
