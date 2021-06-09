@@ -59,6 +59,7 @@ router.post('/Save', async (req, res) => {
         phonenumber: req.body.phoneNumber,
         email: req.body.email,
         telegramId: req.body.telegramId,
+        token: ''
     });
     try {
         const savedUser = await user.save();

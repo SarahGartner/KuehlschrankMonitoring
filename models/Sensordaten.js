@@ -32,6 +32,12 @@ const SensordatenSchema = mongoose.Schema({
     },
     latitude: {
         type: Number
+    },
+    battery: {
+        type: Number
+    },
+    rssi: {
+        type: String
     }
 },{
     collection: 'Sensordata'

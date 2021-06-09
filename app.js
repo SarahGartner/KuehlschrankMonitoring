@@ -13,6 +13,7 @@ const TelegramBot = require('node-telegram-bot-api');
 const sensordatenRoutes = require('./routes/sensordatenRoutes');
 const kuehlgeraeteRoutes = require('./routes/kuehlgeraeteRoutes');
 const userRoutes = require('./routes/userRoutes');
+const crossGateRoutes = require('./routes/crossGateRoutes');
 
 // Telegram Bot
 const token = process.env.TELEGRAMTOKEN;
@@ -30,6 +31,7 @@ app.use(cors({
 app.use('/sensordata', sensordatenRoutes);
 app.use('/fridges', kuehlgeraeteRoutes);
 app.use('/users', userRoutes);
+app.use('/crossGates', crossGateRoutes);
 
 
 //Mit Datenbank verbinden
@@ -80,7 +82,7 @@ var users = [];
 var client;
 
 (async () => {
-    client = mqtt.connect('mqtt://test.mosquitto.org')
+    client = mqtt.connect('mqtt://broker.mqttdashboard.com')
     const user = await User.find();
     user.forEach(u => {
         users.push(u['_id']);
@@ -126,7 +128,9 @@ client.on('message', function (topic, message) {
                 userId: userId,
                 crossGateId: crossGateId,
                 longitude: e['long'],
-                latitude: e['lat']
+                latitude: e['lat'],
+                battery: e['battery'],
+                rssi: e['rssi']
             })
         )}
     )
