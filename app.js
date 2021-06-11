@@ -130,6 +130,7 @@ client.on('message', function (topic, message) {
     const userId = topic.split('/')[0];
     const crossGateId = topic.split('/')[1];
     var gps = false;
+    var battery;
     // console.log(userId + crossGateId);
     messageArray = [];
     message = JSON.parse(message);
@@ -137,6 +138,17 @@ client.on('message', function (topic, message) {
     const sensordaten = [];
     messageArray.forEach(e => {
         gps = (e['long'] != null && e['lat'] != null);
+        batteryFull = true;
+        if (e['battery'] > 2800){
+            battery = 100;
+        } else if (e['battery'] > 2400){
+            battery = 65;
+        } else if (e['battery'] > 2000){
+            battery = 35;
+        } else {
+            battery = 0;
+            batteryFull = false;
+        }
         sensordaten.push(
             new Sensordaten({
                 _id: {
@@ -149,7 +161,7 @@ client.on('message', function (topic, message) {
                 crossGateId: crossGateId,
                 longitude: e['long'],
                 latitude: e['lat'],
-                battery: e['battery'],
+                battery: battery,
                 rssi: e['rssi']
             })
         )
@@ -183,14 +195,21 @@ client.on('message', function (topic, message) {
                     gps: gps
                 }).save();
             } else {
-                if (kuehlgeraet[0].gps != gps) {
-                    await Kuehlgeraet.findOneAndUpdate({ _id: kuehlgeraet[0]['_id'] }, {
-                        gps: gps
-                    });
+                batteryChanged = false;
+                batteryFull = true;
+                if (kuehlgeraet[0].batteryCharge != battery && (kuehlgeraet[0].batteryCharge == 0 || battery == 0))
+                {
+                    batteryChanged = true;
                 }
-                if (kuehlgeraet[0].crossGateId != crossGateId) {
+                if (battery == 0)
+                {
+                    batteryFull = false;
+                }
+                if (kuehlgeraet[0].gps != gps || kuehlgeraet[0].crossGateId != crossGateId || kuehlgeraet[0].batteryCharge != battery) {
                     await Kuehlgeraet.findOneAndUpdate({ _id: kuehlgeraet[0]['_id'] }, {
-                        crossGateId: crossGateId
+                        gps: gps,
+                        crossGateId: crossGateId,
+                        batteryCharge: battery
                     });
                 }
                 const user = await User.find({ _id: userId });
@@ -199,6 +218,12 @@ client.on('message', function (topic, message) {
                         fridgeName = kuehlgeraet[0]['name'];
                     else
                         fridgeName = kuehlgeraet[0]['_id'];
+                    if (!batteryFull && batteryChanged){
+                        bot.sendMessage(user[0]['telegramId'], 'Der Akku deines Kühlgeräts "' + fridgeName +
+                        '" ist fast leer. Wechsle ihn bald!')}
+                    if (batteryFull && batteryChanged){
+                        bot.sendMessage(user[0]['telegramId'], 'Der Akku deines Kühlgeräts "' + fridgeName +
+                        '" wurde gewechselt!')}
                     if (!kuehlgeraet[0]['intervalOK']) {
                         await Kuehlgeraet.findOneAndUpdate({ _id: kuehlgeraet[0]['_id'] }, {
                             intervalOK: true
