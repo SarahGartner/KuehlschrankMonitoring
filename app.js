@@ -43,38 +43,6 @@ mongoose.connect(process.env.DB,
 
 app.listen(port);
 
-
-//Überprüfe ob in letzten 10 Minuten Sensordaten gekommen sind.
-//Telegram bot
-setInterval(async function () {
-    const date = new Date();
-    date.setTime(date.getTime() - (10 * 60 * 1000));
-    try {
-        const kuehlgeraet = await Kuehlgeraet.find();
-        kuehlgeraet.forEach(async e => {
-            const data = await Sensordaten.find({ '_id.sensorMac': e['_id'] });
-            if (e['intervalOK'] && data[data.length - 1]['_id']['timestamp'] < date) {
-                const user = await User.findOne({ '_id': e['userId'] });
-                await Kuehlgeraet.findOneAndUpdate({ _id: e['_id'] }, {
-                    intervalOK: false
-                });
-                if (user['telegramId'] != undefined) {
-                    var name;
-                    if (e['name'] != "")
-                        name = e['name']
-                    else
-                        name = e['_id']
-                    bot.sendMessage(user['telegramId'], 'Achtung! Dein Kühlgerät "' + name + '" hat in den letzten 10 Minuten keine Daten gesendet!');
-                }
-            }
-        })
-    } catch (err) {
-        console.log(err);
-    }
-}, (10 * 60 * 1000))
-
-
-
 //MQTT
 var mqtt = require('mqtt');
 const { isEmptyObject } = require('jquery');
@@ -97,6 +65,56 @@ var client;
 })();
 
 
+
+//Überprüfe ob in letzten 10 Minuten Sensordaten gekommen sind.
+//Telegram bot
+setInterval(async function () {
+    users = [];
+    const user = await User.find();
+    user.forEach(u => {
+        users.push(u['_id']);
+    })
+    users.forEach(u => {
+        client.subscribe(u + '/#', function (err) {
+            if (!err) {
+            }
+        })
+    })
+    const date = new Date();
+    date.setTime(date.getTime() - (10 * 60 * 1000));
+    try {
+        const kuehlgeraet = await Kuehlgeraet.find();
+        console.log(kuehlgeraet);
+        kuehlgeraet.forEach(async e => {
+            try {
+                if (e != undefined) {
+                    const data = await Sensordaten.find({ '_id.sensorMac': e['_id'] });
+                    if (e['intervalOK'] && data[data.length - 1]['_id']['timestamp'] < date) {
+                        const user = await User.findOne({ '_id': e['userId'] });
+                        await Kuehlgeraet.findOneAndUpdate({ _id: e['_id'] }, {
+                            intervalOK: false
+                        });
+                        if (user['telegramId'] != undefined) {
+                            var name;
+                            if (e['name'] != "")
+                                name = e['name']
+                            else
+                                name = e['_id']
+                            bot.sendMessage(user['telegramId'], 'Achtung! Dein Kühlgerät "' + name + '" hat in den letzten 10 Minuten keine Daten gesendet!');
+                        }
+                    }
+                }
+            } catch (error) {
+                console.log(error);
+            }
+        })
+    } catch (err) {
+        console.log(err);
+    }
+}, (10 * 60 * 1000))
+
+
+
 //Reminder an die Sarah weil wegen Kosten pro Zugriff: 
 //Diese Route sollte noch umgebaut werden:
 //zurzeit werden jedes Mal mind 2 DB-Zugriffe gemacht
@@ -107,6 +125,7 @@ var client;
 //man könnte so auch die Wertgrenzen vergleichen, ohne erneut auf die DB zugreiifen zu müssen
 //saveSensordata
 client.on('message', function (topic, message) {
+    console.log(topic);
     const userId = topic.split('/')[0];
     const crossGateId = topic.split('/')[1];
     var gps = false;
@@ -115,8 +134,7 @@ client.on('message', function (topic, message) {
     message = JSON.parse(message);
     Object.keys(message).forEach(key => messageArray.push(message[key]));
     const sensordaten = [];
-    messageArray.forEach(e =>
-        {
+    messageArray.forEach(e => {
         gps = (e['long'] != null && e['lat'] != null);
         sensordaten.push(
             new Sensordaten({
@@ -133,7 +151,8 @@ client.on('message', function (topic, message) {
                 battery: e['battery'],
                 rssi: e['rssi']
             })
-        )}
+        )
+    }
     )
     try {
         sensordaten.forEach(e =>
@@ -142,7 +161,7 @@ client.on('message', function (topic, message) {
     };
     messageArray.forEach(async e => {
         try {
-            const crossGate = await CrossGate.find({_id: crossGateId});
+            const crossGate = await CrossGate.find({ _id: crossGateId });
             if (crossGate.length == 0) {
                 await new CrossGate({
                     _id: crossGateId,
@@ -163,19 +182,19 @@ client.on('message', function (topic, message) {
                     gps: gps
                 }).save();
             } else {
-                if (kuehlgeraet[0].gps != gps){
+                if (kuehlgeraet[0].gps != gps) {
                     await Kuehlgeraet.findOneAndUpdate({ _id: kuehlgeraet[0]['_id'] }, {
                         gps: gps
                     });
                 }
-                if (kuehlgeraet[0].crossGateId != crossGateId){
+                if (kuehlgeraet[0].crossGateId != crossGateId) {
                     await Kuehlgeraet.findOneAndUpdate({ _id: kuehlgeraet[0]['_id'] }, {
                         crossGateId: crossGateId
                     });
                 }
                 const user = await User.find({ _id: userId });
                 messageArray.forEach(async e => {
-                    if(kuehlgeraet[0]['name'].toString == "" || kuehlgeraet[0]['name'] == undefined)
+                    if (kuehlgeraet[0]['name'].toString == "" || kuehlgeraet[0]['name'] == undefined)
                         fridgeName = kuehlgeraet[0]['name'];
                     else
                         fridgeName = kuehlgeraet[0]['_id'];
@@ -188,6 +207,12 @@ client.on('message', function (topic, message) {
                                 '" sendet wieder Daten! Die aktuelle Temperatur beträgt: ' + e['temp'] +
                                 "°C und die Luftfeuchtigkeit beträgt: " + e['hum'] + "%.");
                         }
+                        try {
+                        await Kuehlgeraet.findOneAndUpdate({ _id: kuehlgeraet[0]['telegramId'] }, {
+                            telegramId: 0
+                        });
+                    } catch(err){
+                    }
                     }
                     //temp
                     if (kuehlgeraet[0]['minTemperature'] != kuehlgeraet[0]['maxTemperature']) {

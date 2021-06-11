@@ -32,7 +32,7 @@ const UserSchema = mongoose.Schema({
     },
     token: {
         type: String,
-        required: true
+        required: false
     }
 },{
     collection: 'users'
