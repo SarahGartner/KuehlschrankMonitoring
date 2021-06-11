@@ -47,6 +47,7 @@ app.listen(port);
 var mqtt = require('mqtt');
 const { isEmptyObject } = require('jquery');
 const CrossGate = require('./models/CrossGate');
+const { deleteOne } = require('./models/Kuehlgeraete');
 var users = [];
 var client;
 
@@ -207,12 +208,6 @@ client.on('message', function (topic, message) {
                                 '" sendet wieder Daten! Die aktuelle Temperatur beträgt: ' + e['temp'] +
                                 "°C und die Luftfeuchtigkeit beträgt: " + e['hum'] + "%.");
                         }
-                        try {
-                        await Kuehlgeraet.findOneAndUpdate({ _id: kuehlgeraet[0]['telegramId'] }, {
-                            telegramId: 0
-                        });
-                    } catch(err){
-                    }
                     }
                     //temp
                     if (kuehlgeraet[0]['minTemperature'] != kuehlgeraet[0]['maxTemperature']) {
@@ -311,6 +306,13 @@ bot.on('message', (msg) => {
         //wenn client id eingegeben
         const userById = await User.find({ '_id': msg.text.toString() });
         if (userById[0] != undefined) {
+            try {
+                await User.findOneAndUpdate({ 'telegramId': chatId }, {
+                    telegramId: 0
+                });
+            } catch(err){
+                console.log(err);
+            }
             await User.findOneAndUpdate({ _id: msg.text.toString() }, {
                 telegramId: chatId
             });
