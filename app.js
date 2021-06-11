@@ -7,6 +7,7 @@ const port = process.env.PORT || 3000;
 const https = require('https');
 const Sensordaten = require('./models/Sensordaten');
 const Kuehlgeraet = require('./models/Kuehlgeraete');
+const CrossGate = require('./models/CrossGate');
 const User = require('./models/User');
 const TelegramBot = require('node-telegram-bot-api');
 
@@ -46,7 +47,6 @@ app.listen(port);
 //MQTT
 var mqtt = require('mqtt');
 const { isEmptyObject } = require('jquery');
-const CrossGate = require('./models/CrossGate');
 const { deleteOne } = require('./models/Kuehlgeraete');
 var users = [];
 var client;
@@ -212,7 +212,7 @@ client.on('message', function (topic, message) {
                     //temp
                     if (kuehlgeraet[0]['minTemperature'] != kuehlgeraet[0]['maxTemperature']) {
                         if (e['temp'] > (JSON.parse(JSON.stringify(kuehlgeraet[0]['minTemperature']))) &&
-                        e['temp'] < (JSON.parse(JSON.stringify(kuehlgeraet[0]['maxTemperature'])))
+                            e['temp'] < (JSON.parse(JSON.stringify(kuehlgeraet[0]['maxTemperature'])))
                         ) {
                             if (!kuehlgeraet[0]['tempOK']) {
                                 try {
@@ -310,24 +310,84 @@ bot.on('message', (msg) => {
                 await User.findOneAndUpdate({ 'telegramId': chatId }, {
                     telegramId: 0
                 });
-            } catch(err){
+            } catch (err) {
                 console.log(err);
             }
             await User.findOneAndUpdate({ _id: msg.text.toString() }, {
                 telegramId: chatId
             });
             console.log(userById[0]['firstName']);
-            bot.sendMessage(chatId, "Hallo " + userById[0]['firstName'] + ', dein Telegram Alert System wurde eingerichtet. Du bist mit dem Usernamen ' + userById[0]['_id'] + " gespeichert.");
+            bot.sendMessage(chatId, "Hallo " + userById[0]['firstName'] + ', dein Telegram Alert System wurde eingerichtet. Du bist mit dem Usernamen ' + userById[0]['_id'] + " gespeichert." +
+                "\nMit dem Command /help findest du alle deine Commands.");
             newUser = false;
             console.log(chatId);
         }
         else if (msg.text.toString() == "/start") {
             bot.sendMessage(chatId, 'Willkommen! Bitte gib deine Client-Id ein, um deine Subscription abzuschließen!');
-        } else if (newUser) {
-            bot.sendMessage(chatId, 'Bitte gib deine Client-Id ein, um deine Subscription abzuschließen!');
-        } else {
-            bot.sendMessage(chatId, "Hallo " + user[0]['firstName'] +
-                ". Ich kann dir leider keine Fragen beantworten. Um deine Sensorwerte auszulesen besuche die Seite http://kuehlschrankmonitoring.azurewebsites.net/ und logge dich mit deinem User-Id " + user[0]['_id'] + " ein!");
+        }
+        else if (newUser) {
+            if (msg.text.toString() == "/help") {
+                bot.sendMessage(chatId, 'Hallo ' +
+                    '! \n /start: Richte dein Konto ein! \n /crossgates: Überblick über deine CrossGates (nur eingeloggt) \n /fridges: Überblick deiner Kühlgeräte (nur eingeloggt)');
+            } else {
+                bot.sendMessage(chatId, 'Bitte gib deine Client-Id ein, um deine Subscription abzuschließen!');
+            }
+        }
+        else {
+            if (msg.text.toString() == "/help") {
+                bot.sendMessage(chatId, 'Hallo ' + user[0]['firstName'] + ' (' + user[0]['_id'] + ')' +
+                    '! \n /start: Anderen User einrichten? \n /crossgates: Überblick über deine CrossGates \n /fridges: Überblick deiner Kühlgeräte');
+            }
+            else if (msg.text.toString() == "/fridges") {
+                try {
+                    const kuehlgeraete = await Kuehlgeraet.find({ 'userId': user[0]['_id'] });
+                    if (kuehlgeraete.length != 0)
+                    {
+                        var kgs = "";
+                        kuehlgeraete.forEach(kg => {
+                            if (kgs == "")
+                                kgs = "Macadresse: " + kg['_id'] + "\nName: " + kg['name'] +
+                                "\nCrossGate: " + kg['crossGateId']; // != undefined ? "" : kg['name'];
+                            else
+                            kgs = kgs + "\n\nMacadresse: " + kg['_id'] + "\nName: " + kg['name'] +
+                            "\nCrossGate: " + kg['crossGateId'];
+                        });
+                        bot.sendMessage(chatId, "Deine Kühlgeräte:\n\n" + kgs);
+                    }
+                    else {
+                        bot.sendMessage(chatId, "noch keine Kühlgeräte registriert!");
+                    }
+                }
+                catch (err) {
+                }
+            }
+            else if (msg.text.toString() == "/crossgates") {
+                try {
+                    const crossgates = await CrossGate.find({ 'userId': user[0]['_id'] });
+                    if (crossgates.length != 0)
+                    {
+                        var cgs = "";
+                        crossgates.forEach(cg => {
+                            if (cgs == "")
+                                cgs = "Macadresse: " + cg['_id'] + "\nName: " + cg['name'] +
+                                "\nGPS: " + (cg['gps'] ? "Ja" : "Nein");
+                            else
+                            cgs = cgs + "\n\nMacadresse: " + cg['_id'] + "\nName: " + cg['name'] +
+                            "\nGPS: " + (cg['gps'] ? "Ja" : "Nein");
+                        });
+                        bot.sendMessage(chatId, "Deine CrossGates:\n\n" + cgs);
+                    }
+                    else {
+                        bot.sendMessage(chatId, "noch keine CrossGates registriert!");
+                    }
+                }
+                catch (err) {
+                }
+            }
+            else {
+                bot.sendMessage(chatId, "Hallo " + user[0]['firstName'] +
+                    ". Ich kann dir leider keine Fragen beantworten. Um deine Sensorwerte auszulesen besuche die Seite http://kuehlschrankmonitoring.azurewebsites.net/ und logge dich mit deinem User-Id " + user[0]['_id'] + " ein!");
+            }
         }
         // if (msg.text.toString() == "Geräte") {
         //     const fridge = await Fridge.find({ '_id': user[0]['_id']});
