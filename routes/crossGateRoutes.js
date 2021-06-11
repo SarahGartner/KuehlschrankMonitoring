@@ -4,6 +4,7 @@ const Kuehlgeraet = require('../models/Kuehlgeraete');
 const User = require('../models/User');
 const CrossGate = require('../models/CrossGate');
 var mqtt = require('mqtt');
+const Kuehlgeraete = require('../models/Kuehlgeraete');
 const router = express.Router();
 
 //READ
@@ -65,5 +66,74 @@ router.get('/AddFridge', async (req, res) => {
         res.json({ message: error });
     }
 });
+
+//Delete Fridge
+router.get('/DeleteFridge', async (req, res) => {
+    try {
+        const user = await User.findOne({ _id: req.query.userId });
+        if (user.token != "" && user.token == req.query.token) {
+            const kuehlgeraet = await Kuehlgeraet.findOne({ _id: req.query.fridgeId });
+            var client = mqtt.connect(process.env.MQTTBROKER);
+            var topic = req.query.userId + "/" + req.query.crossGateId + '/deleteTag'
+            client.publish(topic, JSON.stringify({
+                "tag": req.query.fridgeId
+            }))
+            res.json('updated');
+        } else {
+            res.status(403);
+            res.json('Not logged in');
+        }
+    } catch (error) {
+        res.json({ message: error });
+    }
+});
+
+// Delete Fridge
+router.get('/DeleteAllFridges', async (req, res) => {
+    try {
+        const user = await User.findOne({ _id: req.query.userId });
+        if (user.token != "" && user.token == req.query.token) {
+            var json = "{}";
+            var client = mqtt.connect(process.env.MQTTBROKER);
+            var topic = req.query.userId + "/" + req.query.crossGateId + '/deleteAllTags'
+            client.publish(topic, json);
+            res.json('updated');
+        } else {
+            res.status(403);
+            res.json('Not logged in');
+        }
+    } catch (error) {
+        res.json({ message: error });
+    }
+});
+
+// Delete Fridge
+// router.get('/DeleteAllFridges', async (req, res) => {
+//     try {
+//         const user = await User.findOne({ _id: req.query.userId });
+//         if (user.token != "" && user.token == req.query.token) {
+//             const kuehlgeraete = await Kuehlgeraete.find({ 'crossGateId' : req.query.crossGateId});
+//             console.log(kuehlgeraete);
+//             var json = "{";
+//             kuehlgeraete.forEach(kg => {
+//                 if(json == "{")
+//                     json = json + '"tag": "' + kg['_id'] + '"'
+//                 else
+//                     json = json + '"tag": "' + kg['_id'] + '" ,'
+//             });
+//             json = json + "}"
+//             var client = mqtt.connect(process.env.MQTTBROKER);
+//             var topic = req.query.userId + "/" + req.query.crossGateId + '/deleteAllTags'
+//             client.publish(topic, json);
+//             res.json('updated');
+//         } else {
+//             res.status(403);
+//             res.json('Not logged in');
+//         }
+//     } catch (error) {
+//         console.log(error);
+//         res.json({ message: error });
+//     }
+// });
 
 module.exports = router;
