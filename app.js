@@ -78,11 +78,12 @@ setInterval(async function () {
 //MQTT
 var mqtt = require('mqtt');
 const { isEmptyObject } = require('jquery');
+const CrossGate = require('./models/CrossGate');
 var users = [];
 var client;
 
 (async () => {
-    client = mqtt.connect('mqtt://broker.mqttdashboard.com')
+    client = mqtt.connect(process.env.MQTTBROKER)
     const user = await User.find();
     user.forEach(u => {
         users.push(u['_id']);
@@ -109,7 +110,7 @@ client.on('message', function (topic, message) {
     const userId = topic.split('/')[0];
     const crossGateId = topic.split('/')[1];
     var gps = false;
-    console.log(userId + crossGateId);
+    // console.log(userId + crossGateId);
     messageArray = [];
     message = JSON.parse(message);
     Object.keys(message).forEach(key => messageArray.push(message[key]));
@@ -141,6 +142,15 @@ client.on('message', function (topic, message) {
     };
     messageArray.forEach(async e => {
         try {
+            const crossGate = await CrossGate.find({_id: crossGateId});
+            if (crossGate.length == 0) {
+                await new CrossGate({
+                    _id: crossGateId,
+                    name: "",
+                    gps: gps,
+                    userId: userId
+                }).save();
+            }
             const kuehlgeraet = await Kuehlgeraet.find({ _id: e.sensorMac });
             if (kuehlgeraet.length == 0) {
                 await new Kuehlgeraet({
@@ -153,9 +163,14 @@ client.on('message', function (topic, message) {
                     gps: gps
                 }).save();
             } else {
-                if (kuehlgeraet.gps != gps){
+                if (kuehlgeraet[0].gps != gps){
                     await Kuehlgeraet.findOneAndUpdate({ _id: kuehlgeraet[0]['_id'] }, {
                         gps: gps
+                    });
+                }
+                if (kuehlgeraet[0].crossGateId != crossGateId){
+                    await Kuehlgeraet.findOneAndUpdate({ _id: kuehlgeraet[0]['_id'] }, {
+                        crossGateId: crossGateId
                     });
                 }
                 const user = await User.find({ _id: userId });

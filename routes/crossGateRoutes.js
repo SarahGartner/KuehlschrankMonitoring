@@ -1,9 +1,10 @@
 const express = require('express');
-// const Kuehlgeraet = require('../models/Kuehlgeraete');
-// const User = require('../models/User');
+require('dotenv/config');
+const Kuehlgeraet = require('../models/Kuehlgeraete');
+const User = require('../models/User');
 const CrossGate = require('../models/CrossGate');
+var mqtt = require('mqtt');
 const router = express.Router();
-
 
 //READ
 router.get('/', async (req, res) => {
@@ -40,6 +41,29 @@ router.post('/Save', async (req, res) => {
         res.json({ message: error });
         console.log(error);
     };
+});
+
+
+//Update (fridge)
+//Add Fridge
+router.get('/AddFridge', async (req, res) => {
+    try {
+        const user = await User.findOne({ _id: req.query.userId });
+        if (user.token != "" && user.token == req.query.token) {
+            const kuehlgeraet = await Kuehlgeraet.findOne({ _id: req.query.fridgeId });
+            var client = mqtt.connect(process.env.MQTTBROKER);
+            var topic = req.query.userId + "/" + req.query.crossGateId + '/addTag'
+            client.publish(topic, JSON.stringify({
+                "tag": req.query.fridgeId
+            }))
+            res.json('updated');
+        } else {
+            res.status(403);
+            res.json('Not logged in');
+        }
+    } catch (error) {
+        res.json({ message: error });
+    }
 });
 
 module.exports = router;
