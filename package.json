@@ -17,6 +17,7 @@
     "jquery": "^3.5.1",
     "mongoose": "^5.11.9",
     "mqtt": "^4.2.6",
+    "mqtt-connection": "^4.1.0",
     "node-telegram-bot-api": "^0.51.0",
     "nodemon": "^2.0.6",
     "uuid": "^3.4.0"

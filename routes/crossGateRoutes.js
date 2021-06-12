@@ -6,6 +6,7 @@ const CrossGate = require('../models/CrossGate');
 var mqtt = require('mqtt');
 const Kuehlgeraete = require('../models/Kuehlgeraete');
 const router = express.Router();
+var client = mqtt.connect(process.env.MQTTBROKER);
 
 //READ
 router.get('/', async (req, res) => {
@@ -51,9 +52,7 @@ router.get('/AddFridge', async (req, res) => {
     try {
         const user = await User.findOne({ _id: req.query.userId });
         if (user.token != "" && user.token == req.query.token) {
-            const kuehlgeraet = await Kuehlgeraet.findOne({ _id: req.query.fridgeId });
-            var client = mqtt.connect(process.env.MQTTBROKER);
-            var topic = req.query.userId + "/" + req.query.crossGateId + '/addTag'
+            var topic = req.query.userId + "/" + req.query.crossGateId + '/addTag';
             client.publish(topic, req.query.fridgeId);
             res.json('updated');
         } else {
@@ -70,9 +69,7 @@ router.get('/DeleteFridge', async (req, res) => {
     try {
         const user = await User.findOne({ _id: req.query.userId });
         if (user.token != "" && user.token == req.query.token) {
-            const kuehlgeraet = await Kuehlgeraet.findOne({ _id: req.query.fridgeId });
-            var client = mqtt.connect(process.env.MQTTBROKER);
-            var topic = req.query.userId + "/" + req.query.crossGateId + '/deleteTag'
+            var topic = req.query.userId + "/" + req.query.crossGateId + '/deleteTag';
             client.publish(topic, req.query.fridgeId);
             res.json('updated');
         } else {

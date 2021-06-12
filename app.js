@@ -129,191 +129,194 @@ client.on('message', function (topic, message) {
     console.log(topic);
     const userId = topic.split('/')[0];
     const crossGateId = topic.split('/')[1];
-    var gps = false;
-    var battery;
-    // console.log(userId + crossGateId);
-    messageArray = [];
-    message = JSON.parse(message);
-    Object.keys(message).forEach(key => messageArray.push(message[key]));
-    const sensordaten = [];
-    messageArray.forEach(e => {
-        gps = (e['long'] != null && e['lat'] != null);
-        batteryFull = true;
-        if (e['battery'] > 2800){
-            battery = 100;
-        } else if (e['battery'] > 2400){
-            battery = 65;
-        } else if (e['battery'] > 2000){
-            battery = 35;
-        } else {
-            battery = 0;
-            batteryFull = false;
-        }
-        sensordaten.push(
-            new Sensordaten({
-                _id: {
-                    sensorMac: e['sensorMac'],
-                    timestamp: e['timestamp']
-                },
-                temperature: e['temp'],
-                humidity: e['hum'],
-                userId: userId,
-                crossGateId: crossGateId,
-                longitude: e['long'],
-                latitude: e['lat'],
-                battery: battery,
-                rssi: e['rssi']
-            })
-        )
-    }
-    )
-    try {
-        sensordaten.forEach(e =>
-            e.save());
-    } catch (error) {
-    };
-    messageArray.forEach(async e => {
-        try {
-            const crossGate = await CrossGate.find({ _id: crossGateId });
-            if (crossGate.length == 0) {
-                await new CrossGate({
-                    _id: crossGateId,
-                    name: "",
-                    gps: gps,
-                    userId: userId
-                }).save();
+    if (topic.split('/')[2] == "addTag" || topic.split('/')[2]  == "deleteTag") { }
+    else {
+        var gps = false;
+        var battery;
+        // console.log(userId + crossGateId);
+        messageArray = [];
+        message = JSON.parse(message);
+        Object.keys(message).forEach(key => messageArray.push(message[key]));
+        const sensordaten = [];
+        messageArray.forEach(e => {
+            gps = (e['long'] != null && e['lat'] != null);
+            batteryFull = true;
+            if (e['battery'] > 2800) {
+                battery = 100;
+            } else if (e['battery'] > 2400) {
+                battery = 65;
+            } else if (e['battery'] > 2000) {
+                battery = 35;
+            } else {
+                battery = 0;
+                batteryFull = false;
             }
-            const kuehlgeraet = await Kuehlgeraet.find({ _id: e.sensorMac });
-            if (kuehlgeraet.length == 0) {
-                await new Kuehlgeraet({
-                    _id: e['sensorMac'],
-                    fridgeId: "",
-                    name: "",
+            sensordaten.push(
+                new Sensordaten({
+                    _id: {
+                        sensorMac: e['sensorMac'],
+                        timestamp: e['timestamp']
+                    },
+                    temperature: e['temp'],
+                    humidity: e['hum'],
                     userId: userId,
                     crossGateId: crossGateId,
-                    tempOK: true,
-                    gps: gps
-                }).save();
-            } else {
-                batteryChanged = false;
-                batteryFull = true;
-                if (kuehlgeraet[0].batteryCharge != battery && (kuehlgeraet[0].batteryCharge == 0 || battery == 0))
-                {
-                    batteryChanged = true;
-                }
-                if (battery == 0)
-                {
-                    batteryFull = false;
-                }
-                if (kuehlgeraet[0].gps != gps || kuehlgeraet[0].crossGateId != crossGateId || kuehlgeraet[0].batteryCharge != battery) {
-                    await Kuehlgeraet.findOneAndUpdate({ _id: kuehlgeraet[0]['_id'] }, {
+                    longitude: e['long'],
+                    latitude: e['lat'],
+                    battery: battery,
+                    rssi: e['rssi']
+                })
+            )
+        }
+        )
+        try {
+            sensordaten.forEach(e =>
+                e.save());
+        } catch (error) {
+        };
+        messageArray.forEach(async e => {
+            try {
+                const crossGate = await CrossGate.find({ _id: crossGateId });
+                if (crossGate.length == 0) {
+                    await new CrossGate({
+                        _id: crossGateId,
+                        name: "",
                         gps: gps,
-                        crossGateId: crossGateId,
-                        batteryCharge: battery
-                    });
+                        userId: userId
+                    }).save();
                 }
-                const user = await User.find({ _id: userId });
-                messageArray.forEach(async e => {
-                    if (kuehlgeraet[0]['name'].toString == "" || kuehlgeraet[0]['name'] == undefined)
-                        fridgeName = kuehlgeraet[0]['name'];
-                    else
-                        fridgeName = kuehlgeraet[0]['_id'];
-                    if (!batteryFull && batteryChanged){
-                        bot.sendMessage(user[0]['telegramId'], 'Der Akku deines Kühlgeräts "' + fridgeName +
-                        '" ist fast leer. Wechsle ihn bald!')}
-                    if (batteryFull && batteryChanged){
-                        bot.sendMessage(user[0]['telegramId'], 'Der Akku deines Kühlgeräts "' + fridgeName +
-                        '" wurde gewechselt!')}
-                    if (!kuehlgeraet[0]['intervalOK']) {
-                        await Kuehlgeraet.findOneAndUpdate({ _id: kuehlgeraet[0]['_id'] }, {
-                            intervalOK: true
-                        });
-                        if (user[0]['telegramId'] != undefined) {
-                            bot.sendMessage(user[0]['telegramId'], 'Dein Kühlgerät "' + fridgeName +
-                                '" sendet wieder Daten! Die aktuelle Temperatur beträgt: ' + e['temp'] +
-                                "°C und die Luftfeuchtigkeit beträgt: " + e['hum'] + "%.");
-                        }
+                const kuehlgeraet = await Kuehlgeraet.find({ _id: e.sensorMac });
+                if (kuehlgeraet.length == 0) {
+                    await new Kuehlgeraet({
+                        _id: e['sensorMac'],
+                        fridgeId: "",
+                        name: "",
+                        userId: userId,
+                        crossGateId: crossGateId,
+                        tempOK: true,
+                        gps: gps
+                    }).save();
+                } else {
+                    batteryChanged = false;
+                    batteryFull = true;
+                    if (kuehlgeraet[0].batteryCharge != battery && (kuehlgeraet[0].batteryCharge == 0 || battery == 0)) {
+                        batteryChanged = true;
                     }
-                    //temp
-                    if (kuehlgeraet[0]['minTemperature'] != kuehlgeraet[0]['maxTemperature']) {
-                        if (e['temp'] > (JSON.parse(JSON.stringify(kuehlgeraet[0]['minTemperature']))) &&
-                            e['temp'] < (JSON.parse(JSON.stringify(kuehlgeraet[0]['maxTemperature'])))
-                        ) {
-                            if (!kuehlgeraet[0]['tempOK']) {
-                                try {
-                                    await Kuehlgeraet.findOneAndUpdate({ _id: kuehlgeraet[0]['_id'] }, {
-                                        tempOK: true
-                                    });
-                                } catch {
-                                }
-                            }
-                        } else {
-                            if (kuehlgeraet[0]['tempOK']) {
-                                if (e['temp'] < (JSON.parse(JSON.stringify(kuehlgeraet[0]['minTemperature'])))) {
-                                    bot.sendMessage(user[0]['telegramId'],
-                                        'Die Temperatur deines Kühlgerätes "' + fridgeName + '" liegt ' +
-                                        Math.round(((JSON.parse(JSON.stringify(kuehlgeraet[0]['minTemperature']))) - e['temp']) * 100) / 100 +
-                                        '°C unter der Minimaltemperatur. Gemessene Temperatur: '
-                                        + e['temp'] + "°C");
-                                }
-                                else if (e['temp'] > (JSON.parse(JSON.stringify(kuehlgeraet[0]['maxTemperature']))))
-                                    bot.sendMessage(user[0]['telegramId'],
-                                        'Die Temperatur deines Kühlgerätes "' + fridgeName + '" liegt ' +
-                                        Math.round((e['temp'] - (JSON.parse(JSON.stringify(kuehlgeraet[0]['maxTemperature'])))) * 100) / 010 +
-                                        '°C über der Maximaltemperatur. Gemessene Temperatur: '
-                                        + e['temp'] + "°C");
-                                try {
-                                    await Kuehlgeraet.findOneAndUpdate({ _id: kuehlgeraet[0]['_id'] }, {
-                                        tempOK: false,
-                                    });
-                                } catch {
-                                }
+                    if (battery == 0) {
+                        batteryFull = false;
+                    }
+                    if (kuehlgeraet[0].gps != gps || kuehlgeraet[0].crossGateId != crossGateId || kuehlgeraet[0].batteryCharge != battery) {
+                        await Kuehlgeraet.findOneAndUpdate({ _id: kuehlgeraet[0]['_id'] }, {
+                            gps: gps,
+                            crossGateId: crossGateId,
+                            batteryCharge: battery
+                        });
+                    }
+                    const user = await User.find({ _id: userId });
+                    messageArray.forEach(async e => {
+                        if (kuehlgeraet[0]['name'].toString == "" || kuehlgeraet[0]['name'] == undefined)
+                            fridgeName = kuehlgeraet[0]['name'];
+                        else
+                            fridgeName = kuehlgeraet[0]['_id'];
+                        if (!batteryFull && batteryChanged) {
+                            bot.sendMessage(user[0]['telegramId'], 'Der Akku deines Kühlgeräts "' + fridgeName +
+                                '" ist fast leer. Wechsle ihn bald!')
+                        }
+                        if (batteryFull && batteryChanged) {
+                            bot.sendMessage(user[0]['telegramId'], 'Der Akku deines Kühlgeräts "' + fridgeName +
+                                '" wurde gewechselt!')
+                        }
+                        if (!kuehlgeraet[0]['intervalOK']) {
+                            await Kuehlgeraet.findOneAndUpdate({ _id: kuehlgeraet[0]['_id'] }, {
+                                intervalOK: true
+                            });
+                            if (user[0]['telegramId'] != undefined) {
+                                bot.sendMessage(user[0]['telegramId'], 'Dein Kühlgerät "' + fridgeName +
+                                    '" sendet wieder Daten! Die aktuelle Temperatur beträgt: ' + e['temp'] +
+                                    "°C und die Luftfeuchtigkeit beträgt: " + e['hum'] + "%.");
                             }
                         }
-                        //hum
-                        if (kuehlgeraet[0]['minHumidity'] != kuehlgeraet[0]['maxHumidity']) {
-                            if (e['hum'] > (JSON.parse(JSON.stringify(kuehlgeraet[0]['minHumidity']))) &&
-                                e['hum'] < (JSON.parse(JSON.stringify(kuehlgeraet[0]['maxHumidity'])))
+                        //temp
+                        if (kuehlgeraet[0]['minTemperature'] != kuehlgeraet[0]['maxTemperature']) {
+                            if (e['temp'] > (JSON.parse(JSON.stringify(kuehlgeraet[0]['minTemperature']))) &&
+                                e['temp'] < (JSON.parse(JSON.stringify(kuehlgeraet[0]['maxTemperature'])))
                             ) {
-                                if (!kuehlgeraet[0]['humOK']) {
+                                if (!kuehlgeraet[0]['tempOK']) {
                                     try {
                                         await Kuehlgeraet.findOneAndUpdate({ _id: kuehlgeraet[0]['_id'] }, {
-                                            humOK: true
+                                            tempOK: true
                                         });
                                     } catch {
                                     }
                                 }
                             } else {
-                                if (kuehlgeraet[0]['humOK']) {
-                                    if (e['hum'] < (JSON.parse(JSON.stringify(kuehlgeraet[0]['minHumidity'])))) {
+                                if (kuehlgeraet[0]['tempOK']) {
+                                    if (e['temp'] < (JSON.parse(JSON.stringify(kuehlgeraet[0]['minTemperature'])))) {
                                         bot.sendMessage(user[0]['telegramId'],
-                                            'Die Luftfeuchtigkeit deines Kühlgerätes "' + fridgeName + '" liegt ' +
-                                            Math.round(((JSON.parse(JSON.stringify(kuehlgeraet[0]['minHumidity']))) - e['hum']) * 100) / 100 +
-                                            '% unter der Minimalluftfeuchtigkeit. Gemessene Luftfeuchtigkeit: '
-                                            + e['hum'] + "%");
+                                            'Die Temperatur deines Kühlgerätes "' + fridgeName + '" liegt ' +
+                                            Math.round(((JSON.parse(JSON.stringify(kuehlgeraet[0]['minTemperature']))) - e['temp']) * 100) / 100 +
+                                            '°C unter der Minimaltemperatur. Gemessene Temperatur: '
+                                            + e['temp'] + "°C");
                                     }
-                                    else if (e['hum'] > (JSON.parse(JSON.stringify(kuehlgeraet[0]['maxHumidity']))))
+                                    else if (e['temp'] > (JSON.parse(JSON.stringify(kuehlgeraet[0]['maxTemperature']))))
                                         bot.sendMessage(user[0]['telegramId'],
-                                            'Die Luftfeuchtigkeit deines Kühlgerätes "' + fridgeName + '" liegt ' +
-                                            Math.round((e['hum'] - (JSON.parse(JSON.stringify(kuehlgeraet[0]['maxHumidity'])))) * 100) / 100 +
-                                            '% über der Maximalluftfeuchtigkeit. Gemessene Luftfeuchtigkeit: '
-                                            + e['hum'] + "%");
+                                            'Die Temperatur deines Kühlgerätes "' + fridgeName + '" liegt ' +
+                                            Math.round((e['temp'] - (JSON.parse(JSON.stringify(kuehlgeraet[0]['maxTemperature'])))) * 100) / 010 +
+                                            '°C über der Maximaltemperatur. Gemessene Temperatur: '
+                                            + e['temp'] + "°C");
                                     try {
                                         await Kuehlgeraet.findOneAndUpdate({ _id: kuehlgeraet[0]['_id'] }, {
-                                            humOK: false,
+                                            tempOK: false,
                                         });
                                     } catch {
                                     }
                                 }
                             }
+                            //hum
+                            if (kuehlgeraet[0]['minHumidity'] != kuehlgeraet[0]['maxHumidity']) {
+                                if (e['hum'] > (JSON.parse(JSON.stringify(kuehlgeraet[0]['minHumidity']))) &&
+                                    e['hum'] < (JSON.parse(JSON.stringify(kuehlgeraet[0]['maxHumidity'])))
+                                ) {
+                                    if (!kuehlgeraet[0]['humOK']) {
+                                        try {
+                                            await Kuehlgeraet.findOneAndUpdate({ _id: kuehlgeraet[0]['_id'] }, {
+                                                humOK: true
+                                            });
+                                        } catch {
+                                        }
+                                    }
+                                } else {
+                                    if (kuehlgeraet[0]['humOK']) {
+                                        if (e['hum'] < (JSON.parse(JSON.stringify(kuehlgeraet[0]['minHumidity'])))) {
+                                            bot.sendMessage(user[0]['telegramId'],
+                                                'Die Luftfeuchtigkeit deines Kühlgerätes "' + fridgeName + '" liegt ' +
+                                                Math.round(((JSON.parse(JSON.stringify(kuehlgeraet[0]['minHumidity']))) - e['hum']) * 100) / 100 +
+                                                '% unter der Minimalluftfeuchtigkeit. Gemessene Luftfeuchtigkeit: '
+                                                + e['hum'] + "%");
+                                        }
+                                        else if (e['hum'] > (JSON.parse(JSON.stringify(kuehlgeraet[0]['maxHumidity']))))
+                                            bot.sendMessage(user[0]['telegramId'],
+                                                'Die Luftfeuchtigkeit deines Kühlgerätes "' + fridgeName + '" liegt ' +
+                                                Math.round((e['hum'] - (JSON.parse(JSON.stringify(kuehlgeraet[0]['maxHumidity'])))) * 100) / 100 +
+                                                '% über der Maximalluftfeuchtigkeit. Gemessene Luftfeuchtigkeit: '
+                                                + e['hum'] + "%");
+                                        try {
+                                            await Kuehlgeraet.findOneAndUpdate({ _id: kuehlgeraet[0]['_id'] }, {
+                                                humOK: false,
+                                            });
+                                        } catch {
+                                        }
+                                    }
+                                }
+                            }
                         }
-                    }
-                });
+                    });
+                }
+            } catch (error) {
             }
-        } catch (error) {
         }
+        )
     }
-    )
 })
 
 //Telegram bot Konversation
@@ -366,16 +369,15 @@ bot.on('message', (msg) => {
             else if (msg.text.toString() == "/fridges") {
                 try {
                     const kuehlgeraete = await Kuehlgeraet.find({ 'userId': user[0]['_id'] });
-                    if (kuehlgeraete.length != 0)
-                    {
+                    if (kuehlgeraete.length != 0) {
                         var kgs = "";
                         kuehlgeraete.forEach(kg => {
                             if (kgs == "")
                                 kgs = "Macadresse: " + kg['_id'] + "\nName: " + kg['name'] +
-                                "\nCrossGate: " + kg['crossGateId']; // != undefined ? "" : kg['name'];
+                                    "\nCrossGate: " + kg['crossGateId']; // != undefined ? "" : kg['name'];
                             else
-                            kgs = kgs + "\n\nMacadresse: " + kg['_id'] + "\nName: " + kg['name'] +
-                            "\nCrossGate: " + kg['crossGateId'];
+                                kgs = kgs + "\n\nMacadresse: " + kg['_id'] + "\nName: " + kg['name'] +
+                                    "\nCrossGate: " + kg['crossGateId'];
                         });
                         bot.sendMessage(chatId, "Deine Kühlgeräte:\n\n" + kgs);
                     }
@@ -389,16 +391,15 @@ bot.on('message', (msg) => {
             else if (msg.text.toString() == "/crossgates") {
                 try {
                     const crossgates = await CrossGate.find({ 'userId': user[0]['_id'] });
-                    if (crossgates.length != 0)
-                    {
+                    if (crossgates.length != 0) {
                         var cgs = "";
                         crossgates.forEach(cg => {
                             if (cgs == "")
                                 cgs = "Macadresse: " + cg['_id'] + "\nName: " + cg['name'] +
-                                "\nGPS: " + (cg['gps'] ? "Ja" : "Nein");
+                                    "\nGPS: " + (cg['gps'] ? "Ja" : "Nein");
                             else
-                            cgs = cgs + "\n\nMacadresse: " + cg['_id'] + "\nName: " + cg['name'] +
-                            "\nGPS: " + (cg['gps'] ? "Ja" : "Nein");
+                                cgs = cgs + "\n\nMacadresse: " + cg['_id'] + "\nName: " + cg['name'] +
+                                    "\nGPS: " + (cg['gps'] ? "Ja" : "Nein");
                         });
                         bot.sendMessage(chatId, "Deine CrossGates:\n\n" + cgs);
                     }
