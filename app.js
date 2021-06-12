@@ -130,6 +130,19 @@ client.on('message', function (topic, message) {
     const userId = topic.split('/')[0];
     const crossGateId = topic.split('/')[1];
     if (topic.split('/')[2] == "addTag" || topic.split('/')[2] == "deleteTag") { }
+    else if (topic.split('/')[2] == "add") {
+        (async () => {
+            const crossGate = await CrossGate.find({ _id: crossGateId });
+            if (crossGate.length == 0) {
+                await new CrossGate({
+                    _id: crossGateId,
+                    name: "",
+                    gps: false,
+                    userId: userId
+                }).save();
+            }
+        });
+    }
     else {
         var battery;
         // console.log(userId + crossGateId);
@@ -328,6 +341,21 @@ client.on('message', function (topic, message) {
 
 //Telegram bot Konversation
 bot.on('message', (msg) => {
+    var optionsNull = {
+        "parse_mode": "Markdown",
+        "reply_markup": { remove_keyboard: true }
+    };
+    var options = {
+        "parse_mode": "Markdown",
+        "reply_markup": JSON.stringify({
+            "keyboard": [
+                [{ text: "/help" }],
+                [{ text: "/start" }],
+                [{ text: "/fridges" }],
+                [{ text: "/crossgates" }],
+            ]
+        })
+    };
     newUser = true;
     const chatId = msg.chat.id;
     (async () => {
@@ -353,34 +381,35 @@ bot.on('message', (msg) => {
             });
             console.log(userById[0]['firstName']);
             bot.sendMessage(chatId, "Hallo " + userById[0]['firstName'] + ', dein Telegram Alert System wurde eingerichtet. Du bist mit dem Usernamen ' + userById[0]['_id'] + " gespeichert." +
-                "\nMit dem Command /help findest du alle deine Commands.");
+                "\nMit dem Command /help findest du alle deine Commands.", options);
             newUser = false;
             console.log(chatId);
         }
         else if (msg.text.toString() == "/start") {
-            bot.sendMessage(chatId, 'Willkommen! Bitte gib deine Client-Id ein, um deine Subscription abzuschließen!');
+            bot.sendMessage(chatId, 'Willkommen! Bitte gib deine Client-Id ein, um deine Subscription abzuschließen!', optionsNull);
         }
         else if (newUser) {
             if (msg.text.toString() == "/help") {
                 bot.sendMessage(chatId, 'Hallo ' +
-                    '! \n /start: Richte dein Konto ein! \n /crossgates: Überblick über deine CrossGates (nur eingeloggt) \n /fridges: Überblick deiner Kühlgeräte (nur eingeloggt)');
+                    '! \n /start: Richte dein Konto ein! \n /crossgates: Überblick über deine CrossGates (nur eingeloggt) \n /fridges: Überblick deiner Kühlgeräte (nur eingeloggt)'), options;
             } else {
-                bot.sendMessage(chatId, 'Bitte gib deine Client-Id ein, um deine Subscription abzuschließen!');
+                bot.sendMessage(chatId, 'Bitte gib deine Client-Id ein, um deine Subscription abzuschließen!', optionsNull);
             }
         }
         else {
             if (msg.text.toString() == "/help") {
                 bot.sendMessage(chatId, 'Hallo ' + user[0]['firstName'] + ' (' + user[0]['_id'] + ')' +
-                    '! \n /start: Anderen User einrichten? \n /crossgates: Überblick über deine CrossGates \n /fridges: Überblick deiner Kühlgeräte');
+                    '! \n /start: Anderen User einrichten? \n /crossgates: Überblick über deine CrossGates \n /fridges: Überblick deiner Kühlgeräte', options);
             }
             else if (msg.text.toString() == "/fridges") {
                 try {
                     const kuehlgeraete = await Kuehlgeraet.find({ 'userId': user[0]['_id'] });
                     if (kuehlgeraete.length != 0) {
                         var kgs = "";
+                        // var kb = new Array();
                         kuehlgeraete.forEach(async kg => {
-                            // var tempVal = (kg['minTemperature'] != kg['maxTemperature']) ? true : false;
-                            // var humVal = (kg['minHumidity'] != kg['maxHumidity']) ? true : false;
+                            // var z = ['text:' + kg['_id']];
+                            // kb.push(z);
                             var status = kg['intervalOK'] ? "aktiv" : "inaktiv";
                             if (kgs == "") {
                                 kgs = "Macadresse: " + kg['_id'] + "\nName: " + kg['name'] +
@@ -402,10 +431,20 @@ bot.on('message', (msg) => {
                                 }
                             }
                         });
-                        bot.sendMessage(chatId, "Deine Kühlgeräte:\n\n" + kgs);
+                        // var options = {
+                        //     "parse_mode": "Markdown",
+                        //     "reply_markup": JSON.stringify({
+                        //         "keyboard": kb
+                        //         // "keyboard": [
+                        //         //     [{ text: "Yes" }],
+                        //         //     [{ text: "No" }]
+                        //         // ]
+                        //     })
+                        // };
+                        bot.sendMessage(chatId, "Deine Kühlgeräte:\n\n" + kgs, optionsNull);
                     }
                     else {
-                        bot.sendMessage(chatId, "noch keine Kühlgeräte registriert!");
+                        bot.sendMessage(chatId, "noch keine Kühlgeräte registriert!", optionsNull);
                     }
                 }
                 catch (err) {
@@ -424,10 +463,10 @@ bot.on('message', (msg) => {
                                 cgs = cgs + "\n\nMacadresse: " + cg['_id'] + "\nName: " + cg['name'] +
                                     "\nGPS: " + (cg['gps'] ? "Ja" : "Nein");
                         });
-                        bot.sendMessage(chatId, "Deine CrossGates:\n\n" + cgs);
+                        bot.sendMessage(chatId, "Deine CrossGates:\n\n" + cgs, optionsNull);
                     }
                     else {
-                        bot.sendMessage(chatId, "noch keine CrossGates registriert!");
+                        bot.sendMessage(chatId, "noch keine CrossGates registriert!", optionsNull);
                     }
                 }
                 catch (err) {
@@ -435,13 +474,9 @@ bot.on('message', (msg) => {
             }
             else {
                 bot.sendMessage(chatId, "Hallo " + user[0]['firstName'] +
-                    ". Ich kann dir leider keine Fragen beantworten. Um deine Sensorwerte auszulesen besuche die Seite http://kuehlschrankmonitoring.azurewebsites.net/ und logge dich mit deinem User-Id " + user[0]['_id'] + " ein!");
+                    ". Ich kann dir leider keine Fragen beantworten. Um deine Sensorwerte auszulesen besuche die Seite http://kuehlschrankmonitoring.azurewebsites.net/ und logge dich mit deinem User-Id "
+                    + user[0]['_id'] + " ein!", options);
             }
         }
-        // if (msg.text.toString() == "Geräte") {
-        //     const fridge = await Fridge.find({ '_id': user[0]['_id']});
-        //     bot.sendMessage(chatId, "Hallo " + user[0]['firstName'] + "! Deine Geräte: " +
-        //     "");
-        // }
     })();
 });
