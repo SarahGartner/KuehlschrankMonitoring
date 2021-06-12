@@ -54,9 +54,7 @@ router.get('/AddFridge', async (req, res) => {
             const kuehlgeraet = await Kuehlgeraet.findOne({ _id: req.query.fridgeId });
             var client = mqtt.connect(process.env.MQTTBROKER);
             var topic = req.query.userId + "/" + req.query.crossGateId + '/addTag'
-            client.publish(topic, JSON.stringify({
-                "tag": req.query.fridgeId
-            }))
+            client.publish(topic, req.query.fridgeId);
             res.json('updated');
         } else {
             res.status(403);
@@ -75,9 +73,7 @@ router.get('/DeleteFridge', async (req, res) => {
             const kuehlgeraet = await Kuehlgeraet.findOne({ _id: req.query.fridgeId });
             var client = mqtt.connect(process.env.MQTTBROKER);
             var topic = req.query.userId + "/" + req.query.crossGateId + '/deleteTag'
-            client.publish(topic, JSON.stringify({
-                "tag": req.query.fridgeId
-            }))
+            client.publish(topic, req.query.fridgeId);
             res.json('updated');
         } else {
             res.status(403);
@@ -88,24 +84,24 @@ router.get('/DeleteFridge', async (req, res) => {
     }
 });
 
-// Delete Fridge
-router.get('/DeleteAllFridges', async (req, res) => {
-    try {
-        const user = await User.findOne({ _id: req.query.userId });
-        if (user.token != "" && user.token == req.query.token) {
-            var json = "{}";
-            var client = mqtt.connect(process.env.MQTTBROKER);
-            var topic = req.query.userId + "/" + req.query.crossGateId + '/deleteAllTags'
-            client.publish(topic, json);
-            res.json('updated');
-        } else {
-            res.status(403);
-            res.json('Not logged in');
-        }
-    } catch (error) {
-        res.json({ message: error });
-    }
-});
+// // Delete Fridge
+// router.get('/DeleteAllFridges', async (req, res) => {
+//     try {
+//         const user = await User.findOne({ _id: req.query.userId });
+//         if (user.token != "" && user.token == req.query.token) {
+//             var json = "{}";
+//             var client = mqtt.connect(process.env.MQTTBROKER);
+//             var topic = req.query.userId + "/" + req.query.crossGateId + '/deleteAllTags'
+//             client.publish(topic, json);
+//             res.json('updated');
+//         } else {
+//             res.status(403);
+//             res.json('Not logged in');
+//         }
+//     } catch (error) {
+//         res.json({ message: error });
+//     }
+// });
 
 // Delete Fridge
 // router.get('/DeleteAllFridges', async (req, res) => {

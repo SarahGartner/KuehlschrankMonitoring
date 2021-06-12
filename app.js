@@ -82,7 +82,7 @@ setInterval(async function () {
         })
     })
     const date = new Date();
-    date.setTime(date.getTime() - (10 * 60 * 1000));
+    date.setTime(date.getTime() - (5 * 60 * 1000));
     try {
         const kuehlgeraet = await Kuehlgeraet.find();
         console.log(kuehlgeraet);
