@@ -129,9 +129,8 @@ client.on('message', function (topic, message) {
     console.log(topic);
     const userId = topic.split('/')[0];
     const crossGateId = topic.split('/')[1];
-    if (topic.split('/')[2] == "addTag" || topic.split('/')[2]  == "deleteTag") { }
+    if (topic.split('/')[2] == "addTag" || topic.split('/')[2] == "deleteTag") { }
     else {
-        var gps = false;
         var battery;
         // console.log(userId + crossGateId);
         messageArray = [];
@@ -139,7 +138,6 @@ client.on('message', function (topic, message) {
         Object.keys(message).forEach(key => messageArray.push(message[key]));
         const sensordaten = [];
         messageArray.forEach(e => {
-            gps = (e['long'] != null && e['lat'] != null);
             batteryFull = true;
             if (e['battery'] > 2800) {
                 battery = 100;
@@ -175,13 +173,14 @@ client.on('message', function (topic, message) {
         } catch (error) {
         };
         messageArray.forEach(async e => {
+            var gpsBool = (e['long'] != null && e['lat'] != null);
             try {
                 const crossGate = await CrossGate.find({ _id: crossGateId });
                 if (crossGate.length == 0) {
                     await new CrossGate({
                         _id: crossGateId,
                         name: "",
-                        gps: gps,
+                        gps: gpsBool,
                         userId: userId
                     }).save();
                 }
@@ -194,9 +193,16 @@ client.on('message', function (topic, message) {
                         userId: userId,
                         crossGateId: crossGateId,
                         tempOK: true,
-                        gps: gps
+                        gps: gpsBool
                     }).save();
                 } else {
+                    if (crossGate[0].userId != userId || crossGate[0].gps != gpsBool) {
+                        console.log("DD");
+                        await CrossGate.findOneAndUpdate({ _id: crossGateId }, {
+                            userId: userId,
+                            gps: gpsBool
+                        });
+                    }
                     batteryChanged = false;
                     batteryFull = true;
                     if (kuehlgeraet[0].batteryCharge != battery && (kuehlgeraet[0].batteryCharge == 0 || battery == 0)) {
@@ -205,7 +211,8 @@ client.on('message', function (topic, message) {
                     if (battery == 0) {
                         batteryFull = false;
                     }
-                    if (kuehlgeraet[0].gps != gps || kuehlgeraet[0].crossGateId != crossGateId || kuehlgeraet[0].batteryCharge != battery) {
+                    if (kuehlgeraet[0].gps != gpsBool || kuehlgeraet[0].crossGateId != crossGateId ||
+                        kuehlgeraet[0].batteryCharge != battery) {
                         await Kuehlgeraet.findOneAndUpdate({ _id: kuehlgeraet[0]['_id'] }, {
                             gps: gps,
                             crossGateId: crossGateId,
@@ -371,13 +378,29 @@ bot.on('message', (msg) => {
                     const kuehlgeraete = await Kuehlgeraet.find({ 'userId': user[0]['_id'] });
                     if (kuehlgeraete.length != 0) {
                         var kgs = "";
-                        kuehlgeraete.forEach(kg => {
-                            if (kgs == "")
+                        kuehlgeraete.forEach(async kg => {
+                            // var tempVal = (kg['minTemperature'] != kg['maxTemperature']) ? true : false;
+                            // var humVal = (kg['minHumidity'] != kg['maxHumidity']) ? true : false;
+                            var status = kg['intervalOK'] ? "aktiv" : "inaktiv";
+                            if (kgs == "") {
                                 kgs = "Macadresse: " + kg['_id'] + "\nName: " + kg['name'] +
-                                    "\nCrossGate: " + kg['crossGateId']; // != undefined ? "" : kg['name'];
-                            else
+                                    "\nCrossGate: " + kg['crossGateId'] + "\nStatus: " + status;
+                            }
+                            else {
                                 kgs = kgs + "\n\nMacadresse: " + kg['_id'] + "\nName: " + kg['name'] +
-                                    "\nCrossGate: " + kg['crossGateId'];
+                                    "\nCrossGate: " + kg['crossGateId'] + kg['crossGateId'] + "\nStatus: " + status;
+                            }
+                            if (kg['intervalOK']) {
+                                if (kg['gps'])
+                                    kgs += "\nGPS: aktiv";
+                                if (kg['minTemperature'] != kg['maxTemperature'] && !kg['tempOK']) {
+                                    // const sensordaten = await Sensordaten.findOne({ '_id.sensorMac': kg['fridgeId'] });
+                                    kgs += "\nAchtung! Temperatur ist außerhalb des festgelegten Temperaturbereichs!"; // + sensordaten['temperature'];
+                                }
+                                if (kg['minHumidity'] != kg['maxHumidity'] && !kg['humOK']) {
+                                    kgs += "\nAchtung! Luftfeuchtigkeit ist außerhalb des festgelegten Temperaturbereichs!";
+                                }
+                            }
                         });
                         bot.sendMessage(chatId, "Deine Kühlgeräte:\n\n" + kgs);
                     }
