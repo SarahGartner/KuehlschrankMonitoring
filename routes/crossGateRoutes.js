@@ -81,6 +81,23 @@ router.get('/DeleteFridge', async (req, res) => {
     }
 });
 
+//Activate/Deaktivate GPS
+router.get('/toggleGPS', async (req, res) => {
+    try {
+        const user = await User.findOne({ _id: req.query.userId });
+        if (user.token != "" && user.token == req.query.token) {
+            var topic = req.query.userId + "/" + req.query.crossGateId + '/activateGPS';
+            client.publish(topic, req.query.activate);
+            req.query.activate == 'true' ? res.json('activated') : res.json('deactivated');
+        } else {
+            res.status(403);
+            res.json('Not logged in');
+        }
+    } catch (error) {
+        res.json({ message: error });
+    }
+});
+
 // // Delete Fridge
 // router.get('/DeleteAllFridges', async (req, res) => {
 //     try {

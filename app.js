@@ -130,6 +130,7 @@ client.on('message', function (topic, message) {
     const userId = topic.split('/')[0];
     const crossGateId = topic.split('/')[1];
     if (topic.split('/')[2] == "addTag" || topic.split('/')[2] == "deleteTag") { }
+    if (topic.split('/')[2] == "activateGPS" || topic.split('/')[2] == "deactivateGPS") { }
     else if (topic.split('/')[2] == "add") {
         (async () => {
             const crossGate = await CrossGate.find({ _id: crossGateId });
