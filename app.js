@@ -440,7 +440,8 @@ bot.on('message', (msg) => {
                     if (kuehlgeraete.length != 0) {
                         var kgs = "";
                         // var kb = new Array();
-                        kuehlgeraete.forEach(async kg => {
+                        for (const kg of kuehlgeraete) {
+                        // kuehlgeraete.forEach(async kg => {
                             // var z = ['text:' + kg['_id']];
                             // kb.push(z);
                             var status = kg['intervalOK'] ? "aktiv" : "inaktiv";
@@ -452,11 +453,6 @@ bot.on('message', (msg) => {
                                 kgs = kgs + "\n\nMacadresse: " + kg['_id'] + "\nName: " + kg['name'] +
                                     "\nCrossGate: " + kg['crossGateId'] + "\nStatus: " + status;
                             }
-                            // if (status == "aktiv") {
-                            //     var temp = await getFridgeTemp(kg['_id'])
-                            //     kgs += "\naktuelle Temperatur: " + temp;
-                            //     console.log(temp);
-                            // }
                             if (kg['intervalOK']) {
                                 if (kg['gps'])
                                     kgs += "\nGPS: aktiv";
@@ -468,7 +464,14 @@ bot.on('message', (msg) => {
                                     kgs += "\nAchtung! Luftfeuchtigkeit ist außerhalb des festgelegten Temperaturbereichs!";
                                 }
                             }
-                        });
+                            if (status == "aktiv") {
+                                console.log("mmm");
+                                const sensordaten = await Sensordaten.findOne({ '_id.sensorMac': kg['_id'] });
+                                console.log(sensordaten);
+                                kgs += "\naktuelle Temperatur: " + sensordaten['temperature'] + " °C";
+                                kgs += "\naktuelle Luftfeuchtigkeit: " + Math.round(sensordaten['humidity']) + " %";
+                            }
+                        };
                         // var options = {
                         //     "parse_mode": "Markdown",
                         //     "reply_markup": JSON.stringify({
@@ -518,10 +521,3 @@ bot.on('message', (msg) => {
         }
     })();
 });
-
-// async function getFridgeTemp(fridgeId) {
-//     try {
-//         const kuehlgeraet = await Kuehlgeraete.findOne({ _id: fridgeId });
-//         return kuehlgeraet['temp'];
-//     } catch (e) { }
-// }
