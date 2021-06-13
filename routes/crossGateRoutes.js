@@ -6,7 +6,13 @@ const CrossGate = require('../models/CrossGate');
 var mqtt = require('mqtt');
 const Kuehlgeraete = require('../models/Kuehlgeraete');
 const router = express.Router();
-var client = mqtt.connect(process.env.MQTTBROKER);
+
+var options = {
+    username: process.env.MQTTUSER,
+    password: process.env.MQTTPW,
+    port: process.env.MQTTPORT
+};
+var client = mqtt.connect(process.env.MQTTBROKER, options);
 
 //READ
 router.get('/', async (req, res) => {
@@ -88,7 +94,7 @@ router.get('/toggleGPS', async (req, res) => {
         if (user.token != "" && user.token == req.query.token) {
             var topic = req.query.userId + "/" + req.query.crossGateId + '/activateGPS';
             client.publish(topic, req.query.activate);
-            req.query.activate == 'true' ? res.json('activated') : res.json('deactivated');
+            (req.query.activate == 'true' || req.query.activate == 'True') ? res.json('activated') : res.json('deactivated');
         } else {
             res.status(403);
             res.json('Not logged in');

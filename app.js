@@ -50,9 +50,14 @@ const { isEmptyObject } = require('jquery');
 const { deleteOne } = require('./models/Kuehlgeraete');
 var users = [];
 var client;
+var options = {
+    username: process.env.MQTTUSER,
+    password: process.env.MQTTPW,
+    port: process.env.MQTTPORT
+};
 
 (async () => {
-    client = mqtt.connect(process.env.MQTTBROKER)
+    client = mqtt.connect(process.env.MQTTBROKER, options);
     const user = await User.find();
     user.forEach(u => {
         users.push(u['_id']);
@@ -148,16 +153,25 @@ client.on('message', function (topic, message) {
         var battery;
         messageArray = [];
         message = JSON.parse(message);
-        var lat = message['gpsData']['lat'];
-        var long = message['gpsData']['long'];
-        var alti = message['gpsData']['alti'];
-        var speed = message['gpsData']['speedKmh'];
-        var gpsBool = (long != null && lat != null);
-
+        var lat;
+        var long;
+        var alti;
+        var speed;
+        gpsBool = false;
+        if (message['gpsData'] != undefined) {
+            lat = message['gpsData']['lat'];
+            long = message['gpsData']['long'];
+            alti = message['gpsData']['alti'];
+            speed = message['gpsData']['speedKmh'];
+            gpsBool = (long != null && lat != null);
+        }
         Object.keys(message).forEach(key => messageArray.push(message[key]));
         const sensordaten = [];
+
+        crossGateUpdate(crossGateId, userId, gpsBool);
+        
         messageArray.filter(e => e['sensorMac'] != undefined).forEach(e => {
-        // messageArray.forEach(e => {
+            // messageArray.forEach(e => {
             // if (e['sensorMac'] == undefined)
             // {
             //     return;
@@ -198,18 +212,6 @@ client.on('message', function (topic, message) {
                 e.save());
         } catch (error) {
         };
-        try{
-            (async () => {const crossGate = await CrossGate.find({ _id: crossGateId });
-            if (crossGate.length == 0) {
-                await new CrossGate({
-                    _id: crossGateId,
-                    name: "",
-                    gps: gpsBool,
-                    userId: userId
-                }).save();
-            } });
-        } catch (e)
-        {}
         // console.log(messageArray);
         messageArray.forEach(async e => {
             try {
@@ -225,25 +227,19 @@ client.on('message', function (topic, message) {
                         gps: gpsBool
                     }).save();
                 } else {
-                    if (crossGate[0].userId != userId || crossGate[0].gps != gpsBool) {
-                        console.log("DD");
-                        await CrossGate.findOneAndUpdate({ _id: crossGateId }, {
-                            userId: userId,
-                            gps: gpsBool
-                        });
-                    }
+
                     batteryChanged = false;
                     batteryFull = true;
-                    if (kuehlgeraet[0].batteryCharge != battery && (kuehlgeraet[0].batteryCharge == 0 || battery == 0)) {
+                    if (kuehlgeraet[0]['batteryCharge'] != battery && (kuehlgeraet[0]['batteryCharge'] == 0 || battery == 0)) {
                         batteryChanged = true;
                     }
                     if (battery == 0) {
                         batteryFull = false;
                     }
-                    if (kuehlgeraet[0].gps != gpsBool || kuehlgeraet[0].crossGateId != crossGateId ||
-                        kuehlgeraet[0].batteryCharge != battery) {
+                    if (kuehlgeraet[0]['gps'] != gpsBool || kuehlgeraet[0]['crossGateId'] != crossGateId ||
+                        kuehlgeraet[0]['batteryCharge'] != battery) {
                         await Kuehlgeraet.findOneAndUpdate({ _id: kuehlgeraet[0]['_id'] }, {
-                            gps: gps,
+                            gps: gpsBool,
                             crossGateId: crossGateId,
                             batteryCharge: battery
                         });
@@ -355,6 +351,26 @@ client.on('message', function (topic, message) {
     }
 })
 
+async function crossGateUpdate(crossGateId, userId, gpsBool) {
+    try {
+            const crossGate = await CrossGate.find({ _id: crossGateId });
+            if (crossGate.length == 0) {
+                await new CrossGate({
+                    _id: crossGateId,
+                    name: "",
+                    gps: gpsBool,
+                    userId: userId
+                }).save();
+            }
+            if (crossGate[0].userId != userId || crossGate[0]['gps'] != gpsBool) {
+                await CrossGate.findOneAndUpdate({ _id: crossGateId }, {
+                    userId: userId,
+                    gps: gpsBool
+                });
+            };
+    } catch (e) { }
+  }
+
 //Telegram bot Konversation
 bot.on('message', (msg) => {
     var optionsNull = {
@@ -433,7 +449,7 @@ bot.on('message', (msg) => {
                             }
                             else {
                                 kgs = kgs + "\n\nMacadresse: " + kg['_id'] + "\nName: " + kg['name'] +
-                                    "\nCrossGate: " + kg['crossGateId'] + kg['crossGateId'] + "\nStatus: " + status;
+                                    "\nCrossGate: " + kg['crossGateId'] + "\nStatus: " + status;
                             }
                             if (kg['intervalOK']) {
                                 if (kg['gps'])
