@@ -48,6 +48,7 @@ app.listen(port);
 var mqtt = require('mqtt');
 const { isEmptyObject } = require('jquery');
 const { deleteOne } = require('./models/Kuehlgeraete');
+const Kuehlgeraete = require('./models/Kuehlgeraete');
 var users = [];
 var client;
 var options = {
@@ -169,7 +170,7 @@ client.on('message', function (topic, message) {
         const sensordaten = [];
 
         crossGateUpdate(crossGateId, userId, gpsBool);
-        
+
         messageArray.filter(e => e['sensorMac'] != undefined).forEach(e => {
             // messageArray.forEach(e => {
             // if (e['sensorMac'] == undefined)
@@ -353,23 +354,23 @@ client.on('message', function (topic, message) {
 
 async function crossGateUpdate(crossGateId, userId, gpsBool) {
     try {
-            const crossGate = await CrossGate.find({ _id: crossGateId });
-            if (crossGate.length == 0) {
-                await new CrossGate({
-                    _id: crossGateId,
-                    name: "",
-                    gps: gpsBool,
-                    userId: userId
-                }).save();
-            }
-            if (crossGate[0].userId != userId || crossGate[0]['gps'] != gpsBool) {
-                await CrossGate.findOneAndUpdate({ _id: crossGateId }, {
-                    userId: userId,
-                    gps: gpsBool
-                });
-            };
+        const crossGate = await CrossGate.find({ _id: crossGateId });
+        if (crossGate.length == 0) {
+            await new CrossGate({
+                _id: crossGateId,
+                name: "",
+                gps: gpsBool,
+                userId: userId
+            }).save();
+        }
+        if (crossGate[0].userId != userId || crossGate[0]['gps'] != gpsBool) {
+            await CrossGate.findOneAndUpdate({ _id: crossGateId }, {
+                userId: userId,
+                gps: gpsBool
+            });
+        };
     } catch (e) { }
-  }
+}
 
 //Telegram bot Konversation
 bot.on('message', (msg) => {
@@ -418,14 +419,14 @@ bot.on('message', (msg) => {
             console.log(chatId);
         }
         else if (msg.text.toString() == "/start") {
-            bot.sendMessage(chatId, 'Willkommen! Bitte gib deine Client-Id ein, um deine Subscription abzuschließen!', optionsNull);
+            bot.sendMessage(chatId, 'Willkommen! Bitte gib deine Kunden-Id ein, um deine Subscription abzuschließen!', optionsNull);
         }
         else if (newUser) {
             if (msg.text.toString() == "/help") {
                 bot.sendMessage(chatId, 'Hallo ' +
                     '! \n /start: Richte dein Konto ein! \n /crossgates: Überblick über deine CrossGates (nur eingeloggt) \n /fridges: Überblick deiner Kühlgeräte (nur eingeloggt)'), options;
             } else {
-                bot.sendMessage(chatId, 'Bitte gib deine Client-Id ein, um deine Subscription abzuschließen!', optionsNull);
+                bot.sendMessage(chatId, 'Bitte gib deine Kunden-Id ein, um deine Subscription abzuschließen!', optionsNull);
             }
         }
         else {
@@ -451,6 +452,11 @@ bot.on('message', (msg) => {
                                 kgs = kgs + "\n\nMacadresse: " + kg['_id'] + "\nName: " + kg['name'] +
                                     "\nCrossGate: " + kg['crossGateId'] + "\nStatus: " + status;
                             }
+                            // if (status == "aktiv") {
+                            //     var temp = await getFridgeTemp(kg['_id'])
+                            //     kgs += "\naktuelle Temperatur: " + temp;
+                            //     console.log(temp);
+                            // }
                             if (kg['intervalOK']) {
                                 if (kg['gps'])
                                     kgs += "\nGPS: aktiv";
@@ -512,3 +518,10 @@ bot.on('message', (msg) => {
         }
     })();
 });
+
+// async function getFridgeTemp(fridgeId) {
+//     try {
+//         const kuehlgeraet = await Kuehlgeraete.findOne({ _id: fridgeId });
+//         return kuehlgeraet['temp'];
+//     } catch (e) { }
+// }
