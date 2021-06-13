@@ -38,6 +38,12 @@ const SensordatenSchema = mongoose.Schema({
     },
     rssi: {
         type: String
+    },
+    speed: {
+        type: Number
+    },
+    altitude: {
+        type: Number
     }
 },{
     collection: 'Sensordata'

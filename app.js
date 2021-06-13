@@ -145,12 +145,22 @@ client.on('message', function (topic, message) {
     }
     else {
         var battery;
-        // console.log(userId + crossGateId);
         messageArray = [];
         message = JSON.parse(message);
+        var lat = message['gpsData']['lat'];
+        var long = message['gpsData']['long'];
+        var alti = message['gpsData']['alti'];
+        var speed = message['gpsData']['speedKmh'];
+        var gpsBool = (long != null && lat != null);
+
         Object.keys(message).forEach(key => messageArray.push(message[key]));
         const sensordaten = [];
-        messageArray.forEach(e => {
+        messageArray.filter(e => e['sensorMac'] != undefined).forEach(e => {
+        // messageArray.forEach(e => {
+            // if (e['sensorMac'] == undefined)
+            // {
+            //     return;
+            // }
             batteryFull = true;
             if (e['battery'] > 2800) {
                 battery = 100;
@@ -172,10 +182,12 @@ client.on('message', function (topic, message) {
                     humidity: e['hum'],
                     userId: userId,
                     crossGateId: crossGateId,
-                    longitude: e['long'],
-                    latitude: e['lat'],
+                    longitude: long,
+                    latitude: lat,
                     battery: battery,
-                    rssi: e['rssi']
+                    rssi: e['rssi'],
+                    altitude: alti,
+                    speed: speed
                 })
             )
         }
@@ -185,18 +197,21 @@ client.on('message', function (topic, message) {
                 e.save());
         } catch (error) {
         };
+        try{
+            (async () => {const crossGate = await CrossGate.find({ _id: crossGateId });
+            if (crossGate.length == 0) {
+                await new CrossGate({
+                    _id: crossGateId,
+                    name: "",
+                    gps: gpsBool,
+                    userId: userId
+                }).save();
+            } });
+        } catch (e)
+        {}
+        // console.log(messageArray);
         messageArray.forEach(async e => {
-            var gpsBool = (e['long'] != null && e['lat'] != null);
             try {
-                const crossGate = await CrossGate.find({ _id: crossGateId });
-                if (crossGate.length == 0) {
-                    await new CrossGate({
-                        _id: crossGateId,
-                        name: "",
-                        gps: gpsBool,
-                        userId: userId
-                    }).save();
-                }
                 const kuehlgeraet = await Kuehlgeraet.find({ _id: e.sensorMac });
                 if (kuehlgeraet.length == 0) {
                     await new Kuehlgeraet({
